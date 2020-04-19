@@ -1,0 +1,3 @@
+rootProject.name='Android-Spinning-Wheel-View'
+include ':app'
+include ':spinningWheelLib'
