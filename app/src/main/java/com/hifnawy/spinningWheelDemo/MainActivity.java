@@ -39,38 +39,38 @@ public class MainActivity extends AppCompatActivity {
         homeImage = findViewById(R.id.mainBackgroundImage);
         homeText = findViewById(R.id.mainTextView);
 
-        Bitmap someBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.abstract_1);
-
-        //Init WheelSection list
-        wheelSections.add(new WheelBitmapSection(someBitmap));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_2));
-        wheelSections.add(new WheelTextSection("item #1")
-                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.red))
-                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.white)));
-        wheelSections.add(new WheelColorSection(R.color.green));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_3));
-        wheelSections.add(new WheelTextSection("item #2")
-                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.magenta))
-                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.red)));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_4));
-        wheelSections.add(new WheelTextSection("item #3")
-                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.green))
-                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.white)));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_5));
-        wheelSections.add(new WheelColorSection(R.color.orange));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_6));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_7));
-        wheelSections.add(new WheelColorSection(R.color.blue));
-        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_8));
-        wheelSections.add(new WheelDrawableSection(R.drawable.example_layer_list_drawable));
-        wheelSections.add(new WheelTextSection("item #4")
-                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.yellow))
-                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.black)));
-
+//        Bitmap someBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.abstract_1);
+//
+//        //Init WheelSection list
+//        wheelSections.add(new WheelBitmapSection(someBitmap));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_2));
+//        wheelSections.add(new WheelTextSection("item #1")
+//                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.red))
+//                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.white)));
+//        wheelSections.add(new WheelColorSection(R.color.green));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_3));
+//        wheelSections.add(new WheelTextSection("item #2")
+//                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.magenta))
+//                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.red)));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_4));
+//        wheelSections.add(new WheelTextSection("item #3")
+//                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.green))
+//                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.white)));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_5));
+//        wheelSections.add(new WheelColorSection(R.color.orange));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_6));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_7));
+//        wheelSections.add(new WheelColorSection(R.color.blue));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.abstract_8));
+//        wheelSections.add(new WheelDrawableSection(R.drawable.example_layer_list_drawable));
+//        wheelSections.add(new WheelTextSection("item #4")
+//                .setSectionBackgroundColor(ContextCompat.getColor(this, R.color.yellow))
+//                .setSectionForegroundColor(ContextCompat.getColor(this, R.color.black)));
 
         //Init wheelView and set parameters
         wheelView = findViewById(R.id.spinningWheelView);
-        wheelView.setWheelSections(wheelSections);
+//        wheelView.setWheelSections(wheelSections);
+        wheelView.setWheelSections(new ArrayList<WheelSection>());
         wheelView.setMarkerPosition(MarkerPosition.TOP);
 
         wheelView.setWheelBorderLineColor(R.color.border);
@@ -123,29 +123,30 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onAnimationEnd(Animation animation) {
 
-                        WheelSection section = wheelSections.get(selectedIndex);
-                        switch (section.getType()) {
-                            case TEXT:
-                                homeImage.setImageDrawable(null);
-                                homeImage.setBackgroundColor(((WheelTextSection) section).getBackgroundColor());
-                                homeText.setTextColor(((WheelTextSection) section).getForegroundColor());
-                                break;
-                            case BITMAP:
-                                homeImage.setImageBitmap(((WheelBitmapSection) section).getBitmap());
-                                break;
-                            case DRAWABLE:
-                                homeImage.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), ((WheelDrawableSection) section).getDrawableRes()));
-                                break;
-                            case COLOR:
-                                homeImage.setImageDrawable(null);
-                                homeImage.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), ((WheelColorSection) section).getColor()));
-                                break;
+                        if (wheelSections.size() > 0) {
+                            WheelSection section = wheelSections.get(selectedIndex);
+                            switch (section.getType()) {
+                                case TEXT:
+                                    homeImage.setImageDrawable(null);
+                                    homeImage.setBackgroundColor(((WheelTextSection) section).getBackgroundColor());
+                                    homeText.setTextColor(((WheelTextSection) section).getForegroundColor());
+                                    break;
+                                case BITMAP:
+                                    homeImage.setImageBitmap(((WheelBitmapSection) section).getBitmap());
+                                    break;
+                                case DRAWABLE:
+                                    homeImage.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), ((WheelDrawableSection) section).getDrawableRes()));
+                                    break;
+                                case COLOR:
+                                    homeImage.setImageDrawable(null);
+                                    homeImage.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), ((WheelColorSection) section).getColor()));
+                                    break;
+                            }
+
+                            Animation fadeIn = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in);
+                            homeImage.startAnimation(fadeIn);
                         }
-
-                        Animation fadeIn = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in);
-                        homeImage.startAnimation(fadeIn);
                     }
-
                     @Override
                     public void onAnimationRepeat(Animation animation) {
                     }

@@ -141,10 +141,11 @@ public class SpinningWheelView extends RelativeLayout {
         matrix.getValues(v);
         double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
 
-        if (angle > 0)
+        if (angle > 0) {
             return angle;
-        else
+        } else {
             return 360 + angle;
+        }
     }
 
     public void reInit() {
@@ -436,7 +437,7 @@ public class SpinningWheelView extends RelativeLayout {
         // |       *  _  *       |
         // _______________________
 
-        int wheelSectionCount = mWheelSections.size();
+        int wheelSectionCount = mWheelSections.size() > 0 ? mWheelSections.size() : 1;
         float sweepAngle = (360.0f / wheelSectionCount);
         float startAngle = 0 /*90 - sweepAngle/2*/;
         angleOffset = startAngle;                   //save angle, will be used later
@@ -891,7 +892,9 @@ public class SpinningWheelView extends RelativeLayout {
             }
 
             if (mListener != null) {
-                mListener.onWheelSectionChanged(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                if (mWheelSections.size() > 0) {
+                    mListener.onWheelSectionChanged(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                }
             }
 
             if (!allowRotating) {        //Fling has been stopped, so stop now.
