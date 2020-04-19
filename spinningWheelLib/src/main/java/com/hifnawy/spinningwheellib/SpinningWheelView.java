@@ -150,7 +150,54 @@ public class SpinningWheelView extends RelativeLayout {
 
     public void reInit() {
         mMarker = null;
-        init(mContext);
+
+        globalTextSize = 30;
+
+        mWheel = findViewById(R.id.prize_wheel_view_wheel);
+        mMarker = findViewById(R.id.prize_wheel_view_marker);
+        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
+
+        mMarker.setVisibility(View.VISIBLE);
+
+        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
+
+        matrix = new Matrix();
+
+        gestureDetector = new GestureDetector(mContext, new WheelGestureListener());
+        touchListener = new WheelTouchListener();
+        mWheel.setOnTouchListener(touchListener);
+
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // method called more than once, but the values only need to be initialized one time
+                if (wheelHeight == 0 || wheelWidth == 0) {
+
+                    //Grab the shortest of the container dimensions
+                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
+
+                    //Apply the margin for the marker. Use those dimensions for the wheel
+                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
+
+                    //Resize the wheel's imageview
+                    mWheel.getLayoutParams().height = wheelHeight;
+                    mWheel.getLayoutParams().width = wheelWidth;
+                    mWheel.requestLayout();
+
+                    //Resize the marker's container
+                    mMarkerContainer.getLayoutParams().height = minDimen;
+                    mMarkerContainer.getLayoutParams().width = minDimen;
+                    mMarkerContainer.requestLayout();
+                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
+
+                    if (mCanGenerateWheel) {
+                        generateWheelImage();
+                    }
+                }
+            }
+        });
     }
 
     private void init(Context context) {

@@ -69,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Init wheelView and set parameters
         wheelView = findViewById(R.id.spinningWheelView);
+        wheelView.reInit();
+
 //        wheelView.setWheelSections(wheelSections);
         wheelView.setWheelSections(new ArrayList<WheelSection>());
         wheelView.setMarkerPosition(MarkerPosition.TOP);
