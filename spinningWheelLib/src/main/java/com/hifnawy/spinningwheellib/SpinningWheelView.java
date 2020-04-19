@@ -222,9 +222,9 @@ public class SpinningWheelView extends RelativeLayout {
 //        if (wheelSections == null || wheelSections.size() < Constants.MINIMUM_WHEEL_SECTIONS || wheelSections.size() > Constants.MAXIMUM_WHEEL_SECTIONS)
 //            throw new InvalidWheelSectionsException();
 
-        for (WheelSection ws : wheelSections) {
-            Log.d("mn3m", ws.toString());
-        }
+//        for (WheelSection ws : wheelSections) {
+//            Log.d("mn3m", ws.toString());
+//        }
 
         if (wheelSections == null) {
             throw new InvalidWheelSectionsException();
