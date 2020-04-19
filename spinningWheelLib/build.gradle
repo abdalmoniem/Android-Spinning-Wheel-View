@@ -1,5 +1,7 @@
-apply plugin:  'maven-publish'
 apply plugin: 'com.android.library'
+apply plugin: 'android-maven'
+group='com.hifnawy'
+version='1.0.1'
 
 android {
     compileSdkVersion 29
