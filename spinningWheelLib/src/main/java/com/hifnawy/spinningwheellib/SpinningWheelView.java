@@ -49,12 +49,13 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 /**
- * Created by abicelis on 25/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public class SpinningWheelView extends RelativeLayout {
     private static float angleOffset;
     private static Matrix matrix;
+
     //Internal data
     private ImageView mWheel;
     private ImageView mMarker;
@@ -65,18 +66,14 @@ public class SpinningWheelView extends RelativeLayout {
     private boolean[] quadrantTouched = new boolean[]{false, false, false, false, false};
     private boolean allowRotating = true;
     private FlingRunnable flingRunnable;
-    private boolean isReversing = false;
+//    private boolean isReversing = false;
     private FlingDirection flingDirection = FlingDirection.STOPPED;
-
     private ObjectAnimator rightRotationAnimation;
     private ObjectAnimator leftAnimationRotation;
-
     private Vibrator vibrator;
-
     private Context mContext;
 
     //Configurable options
-
     private List<WheelSection> mWheelSections;
     private MarkerPosition mMarkerPosition = MarkerPosition.TOP;
     private boolean mCanGenerateWheel;
@@ -93,7 +90,7 @@ public class SpinningWheelView extends RelativeLayout {
     private float flingVelocityDampening = Constants.FLING_VELOCITY_DAMPENING;
     private int globalTextSize;
 
-    /* Constructors and init */
+    /* Constructors */
     public SpinningWheelView(Context context) {
         super(context);
 
@@ -115,153 +112,45 @@ public class SpinningWheelView extends RelativeLayout {
         init(mContext);
     }
 
+    /* Public getters */
+
     /**
-     * @return The selected quadrant.
+     * @return currently set wheel sections.
      */
-    private static int getQuadrant(double x, double y) {
-        if (x >= 0) {
-            return y >= 0 ? 1 : 4;
-        } else {
-            return y >= 0 ? 2 : 3;
-        }
+    public List<WheelSection> getWheelSections() {
+        return mWheelSections;
     }
 
+    /**
+     * @return currently set font size for {@link WheelTextSection} sections.
+     */
+    public int getGlobalTextSize() {
+        return globalTextSize;
+    }
 
+    /**
+     * @return generated {@Link ImageView} of the Spinning Wheel.
+     */
+    public ImageView getWheelImageView() {
+        return mWheel;
+    }
 
-
-
+    /**
+     * @return current {@Link FlingDirection} of the Spinning Wheel.
+     */
+    public FlingDirection getFlingDirection() {
+        return flingDirection;
+    }
 
     /* Public setters */
 
     /**
-     * @return The current rotation of the wheel.
-     */
-    private static double getCurrentRotation() {
-        float[] v = new float[9];
-        matrix.getValues(v);
-        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
-
-        if (angle > 0) {
-            return angle;
-        } else {
-            return 360 + angle;
-        }
-    }
-
-    public void reInit() {
-        mMarker = null;
-
-        globalTextSize = 30;
-
-        mWheel = findViewById(R.id.prize_wheel_view_wheel);
-        mMarker = findViewById(R.id.prize_wheel_view_marker);
-        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
-
-        mMarker.setVisibility(View.VISIBLE);
-
-        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
-
-        matrix = new Matrix();
-
-        gestureDetector = new GestureDetector(mContext, new WheelGestureListener());
-        touchListener = new WheelTouchListener();
-        mWheel.setOnTouchListener(touchListener);
-
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                // method called more than once, but the values only need to be initialized one time
-                if (wheelHeight == 0 || wheelWidth == 0) {
-
-                    //Grab the shortest of the container dimensions
-                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
-
-                    //Apply the margin for the marker. Use those dimensions for the wheel
-                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
-
-                    //Resize the wheel's imageview
-                    mWheel.getLayoutParams().height = wheelHeight;
-                    mWheel.getLayoutParams().width = wheelWidth;
-                    mWheel.requestLayout();
-
-                    //Resize the marker's container
-                    mMarkerContainer.getLayoutParams().height = minDimen;
-                    mMarkerContainer.getLayoutParams().width = minDimen;
-                    mMarkerContainer.requestLayout();
-                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
-
-                    if (mCanGenerateWheel) {
-                        generateWheelImage();
-                    }
-                }
-            }
-        });
-    }
-
-    private void init(Context context) {
-        LayoutInflater inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        inflater.inflate(R.layout.prize_wheel_view, this);
-
-        globalTextSize = 30;
-
-        mWheel = findViewById(R.id.prize_wheel_view_wheel);
-        mMarker = findViewById(R.id.prize_wheel_view_marker);
-        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
-
-        mMarker.setVisibility(View.VISIBLE);
-
-        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
-
-        matrix = new Matrix();
-
-        gestureDetector = new GestureDetector(context, new WheelGestureListener());
-        touchListener = new WheelTouchListener();
-        mWheel.setOnTouchListener(touchListener);
-
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                // method called more than once, but the values only need to be initialized one time
-                if (wheelHeight == 0 || wheelWidth == 0) {
-
-                    //Grab the shortest of the container dimensions
-                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
-
-                    //Apply the margin for the marker. Use those dimensions for the wheel
-                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
-
-                    //Resize the wheel's imageview
-                    mWheel.getLayoutParams().height = wheelHeight;
-                    mWheel.getLayoutParams().width = wheelWidth;
-                    mWheel.requestLayout();
-
-                    //Resize the marker's container
-                    mMarkerContainer.getLayoutParams().height = minDimen;
-                    mMarkerContainer.getLayoutParams().width = minDimen;
-                    mMarkerContainer.requestLayout();
-                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
-
-                    if (mCanGenerateWheel) {
-                        generateWheelImage();
-                    }
-                }
-            }
-        });
-    }
-
-    /**
      * Populate a SpinningWheelView with a List of WheelSections such as
-     * {@link com.hifnawy.spinningwheellib.model.WheelBitmapSection},
-     * {@link com.hifnawy.spinningwheellib.model.WheelColorSection} and
-     * {@link com.hifnawy.spinningwheellib.model.WheelDrawableSection}.
+     * {@link WheelTextSection},
+     * * {@link WheelBitmapSection},
+     * {@link WheelColorSection} and
+     * {@link WheelDrawableSection}.
      * As SpinningWheelView supports Bitmaps, Colors and Drawables.
-     * NOTE: Enter at least {@value com.hifnawy.spinningwheellib.Constants#MINIMUM_WHEEL_SECTIONS}
-     * WheelSections and at most {@value com.hifnawy.spinningwheellib.Constants#MAXIMUM_WHEEL_SECTIONS}.
      *
      * @param wheelSections a List of WheelSections
      */
@@ -280,16 +169,12 @@ public class SpinningWheelView extends RelativeLayout {
         mWheelSections = wheelSections;
     }
 
-    public List<WheelSection> getWheelSections() {
-        return mWheelSections;
-    }
-
     /**
      * Set a position of the wheel Marker. Please see
-     * {@link com.hifnawy.spinningwheellib.model.MarkerPosition} for all the options.
-     * DEFAULT VALUE: {@link com.hifnawy.spinningwheellib.model.MarkerPosition#TOP}
+     * {@link MarkerPosition} for all the options.
+     * DEFAULT VALUE: {@link MarkerPosition#TOP}
      *
-     * @param markerPosition A {@link com.hifnawy.spinningwheellib.model.MarkerPosition}
+     * @param markerPosition A {@link MarkerPosition}
      */
     public void setMarkerPosition(@NonNull MarkerPosition markerPosition) {
         mMarkerPosition = markerPosition;
@@ -347,11 +232,101 @@ public class SpinningWheelView extends RelativeLayout {
     }
 
     /**
-     * Set {@link com.hifnawy.spinningwheellib.WheelEventsListener}, a listener interface.
+     * Set {@link WheelEventsListener}, a listener interface.
      * to receive events such as: onWheelStopped(), onWheelFlung() and onWheelSettled()
+     *
+     * @param listener {@link WheelEventsListener} to set
      */
     public void setWheelEventsListener(WheelEventsListener listener) {
         mListener = listener;
+    }
+
+    /**
+     * Enable or Disable tick vibrations on wheel rotation and fling
+     * @param tickVibrations Enabled if {@code true} - Disabled if {@code false}
+     */
+    public void setTickVibrations(boolean tickVibrations) {
+        this.tickVibrations = tickVibrations;
+
+        this.vibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+    }
+
+    /**
+     * Enable or Disable preview mode for the spinning wheel
+     * Preview mode disables All {@link WheelEventsListener} listeners attached to the Spinning Wheel
+     * @param preview Enabled if {@code true} - Disabled if {@code false}
+     */
+    public void setIsPreview(boolean preview) {
+        isPreview = preview;
+
+        if (isPreview) {
+            mWheel.setOnTouchListener(null);
+        }
+    }
+
+    /**
+     * Set font size for all @{Link {@link WheelTextSection} sections
+     * @param globalTextSize {@link WheelTextSection} font size
+     */
+    public void setGlobalTextSize(int globalTextSize) {
+        this.globalTextSize = globalTextSize;
+    }
+
+    /* Public methods */
+
+    /**
+     * Re-Initializes the @{Link {@link ImageView} of the spinning wheel and resets all positions of images
+     */
+    public void reInit() {
+        mMarker = null;
+
+        globalTextSize = 30;
+
+        mWheel = findViewById(R.id.prize_wheel_view_wheel);
+        mMarker = findViewById(R.id.prize_wheel_view_marker);
+        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
+
+        mMarker.setVisibility(View.VISIBLE);
+
+        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
+
+        matrix = new Matrix();
+
+        gestureDetector = new GestureDetector(mContext, new WheelGestureListener());
+        touchListener = new WheelTouchListener();
+        mWheel.setOnTouchListener(touchListener);
+
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // method called more than once, but the values only need to be initialized one time
+                if (wheelHeight == 0 || wheelWidth == 0) {
+
+                    //Grab the shortest of the container dimensions
+                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
+
+                    //Apply the margin for the marker. Use those dimensions for the wheel
+                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
+
+                    //Resize the wheel's imageview
+                    mWheel.getLayoutParams().height = wheelHeight;
+                    mWheel.getLayoutParams().width = wheelWidth;
+                    mWheel.requestLayout();
+
+                    //Resize the marker's container
+                    mMarkerContainer.getLayoutParams().height = minDimen;
+                    mMarkerContainer.getLayoutParams().width = minDimen;
+                    mMarkerContainer.requestLayout();
+                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
+
+                    if (mCanGenerateWheel) {
+                        generateWheelImage();
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -365,37 +340,61 @@ public class SpinningWheelView extends RelativeLayout {
             generateWheelImage();
     }
 
-    public void setTickVibrations(Context context, boolean tickVibrations) {
-        this.tickVibrations = tickVibrations;
-
-        this.vibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-    }
-
-    public void setIsPreview(boolean preview) {
-        isPreview = preview;
-
-        if (isPreview) {
-            mWheel.setOnTouchListener(null);
-        }
-    }
-
-    public int getGlobalTextSize() {
-        return globalTextSize;
-    }
-
-    public void setGlobalTextSize(int globalTextSize) {
-        this.globalTextSize = globalTextSize;
-    }
-
-    public ImageView getWheelImageView() {
-        return mWheel;
-    }
-
-    public FlingDirection getFlingDirection() {
-        return flingDirection;
-    }
-
     /* Internal methods */
+
+    private void init(Context context) {
+        LayoutInflater inflater = (LayoutInflater) context
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater.inflate(R.layout.prize_wheel_view, this);
+
+        globalTextSize = 30;
+
+        mWheel = findViewById(R.id.prize_wheel_view_wheel);
+        mMarker = findViewById(R.id.prize_wheel_view_marker);
+        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
+
+        mMarker.setVisibility(View.VISIBLE);
+
+        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
+
+        matrix = new Matrix();
+
+        gestureDetector = new GestureDetector(context, new WheelGestureListener());
+        touchListener = new WheelTouchListener();
+        mWheel.setOnTouchListener(touchListener);
+
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // method called more than once, but the values only need to be initialized one time
+                if (wheelHeight == 0 || wheelWidth == 0) {
+
+                    //Grab the shortest of the container dimensions
+                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
+
+                    //Apply the margin for the marker. Use those dimensions for the wheel
+                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
+
+                    //Resize the wheel's imageview
+                    mWheel.getLayoutParams().height = wheelHeight;
+                    mWheel.getLayoutParams().width = wheelWidth;
+                    mWheel.requestLayout();
+
+                    //Resize the marker's container
+                    mMarkerContainer.getLayoutParams().height = minDimen;
+                    mMarkerContainer.getLayoutParams().width = minDimen;
+                    mMarkerContainer.requestLayout();
+                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
+//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
+
+                    if (mCanGenerateWheel) {
+                        generateWheelImage();
+                    }
+                }
+            }
+        });
+    }
 
     /**
      * Call this method to manually stop the wheel
@@ -426,7 +425,7 @@ public class SpinningWheelView extends RelativeLayout {
      * @param clockwise the direction of the rotation.
      */
     public void flingWheel(int velocity, boolean clockwise) {
-        isReversing = false;
+//        isReversing = false;
         doFlingWheel((clockwise ? -velocity : velocity));
     }
 
@@ -446,6 +445,32 @@ public class SpinningWheelView extends RelativeLayout {
     private void resetQuadrants() {
         for (int i = 0; i < quadrantTouched.length; i++) {
             quadrantTouched[i] = false;
+        }
+    }
+
+    /**
+     * @return The selected quadrant.
+     */
+    private static int getQuadrant(double x, double y) {
+        if (x >= 0) {
+            return y >= 0 ? 1 : 4;
+        } else {
+            return y >= 0 ? 2 : 3;
+        }
+    }
+
+    /**
+     * @return The current rotation of the wheel.
+     */
+    private static double getCurrentRotation() {
+        float[] v = new float[9];
+        matrix.getValues(v);
+        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
+
+        if (angle > 0) {
+            return angle;
+        } else {
+            return 360 + angle;
         }
     }
 
@@ -735,7 +760,6 @@ public class SpinningWheelView extends RelativeLayout {
         mWheel.setImageBitmap(result);
     }
 
-
     private void doFlingWheel(float velocity) {
 
         //Stop previous fling
@@ -751,10 +775,14 @@ public class SpinningWheelView extends RelativeLayout {
         post(flingRunnable);
     }
 
-
     private class WheelTouchListener implements OnTouchListener {
+        private final int ANIMATION_DURATION = 100;
+        private final float markerRotation = mMarker.getRotation();
+        private final MediaPlayer tick = MediaPlayer.create(getContext(), R.raw.click);
 
         private double startAngle;
+        private boolean CW = false;
+        private int currentStandingSection;
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
@@ -765,12 +793,65 @@ public class SpinningWheelView extends RelativeLayout {
                     resetQuadrants();
                     startAngle = getAngle(event.getX(), event.getY());
                     allowRotating = false;
+                    currentStandingSection = getCurrentSelectedSectionIndex();
+
+                    if (rightRotationAnimation != null) {
+                        rightRotationAnimation.end();
+                    }
+                    if (leftAnimationRotation != null) {
+                        leftAnimationRotation.end();
+                    }
+
                     break;
 
                 case MotionEvent.ACTION_MOVE:
                     double currentAngle = getAngle(event.getX(), event.getY());
                     rotateWheel((float) (startAngle - currentAngle));
                     startAngle = currentAngle;
+
+                    if (getCurrentSelectedSectionIndex() != currentStandingSection) {
+                        if ((currentStandingSection == (mWheelSections.size() - 1)) && (getCurrentSelectedSectionIndex() == 0)) {
+                            CW = true;
+                        } else if ((currentStandingSection == 0) && (getCurrentSelectedSectionIndex() == (mWheelSections.size() - 1))) {
+                            CW = false;
+                        } else if (getCurrentSelectedSectionIndex() > currentStandingSection) {
+                            CW = true;
+                        } else {
+                            CW = false;
+                        }
+
+                        leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+                        leftAnimationRotation.setDuration(ANIMATION_DURATION);
+
+                        rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? 50f : -50f));
+                        rightRotationAnimation.setDuration(ANIMATION_DURATION);
+                        rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+
+                                if (!leftAnimationRotation.isRunning()) {
+                                    leftAnimationRotation.start();
+                                }
+                            }
+                        });
+
+                        if ((rightRotationAnimation != null) && (!rightRotationAnimation.isRunning())) {
+                            rightRotationAnimation.start();
+                        }
+
+                        if (!tick.isPlaying()) {
+                            tick.start();
+                        }
+
+                        if (tickVibrations) {
+                            // small vibration
+                            vibrator.vibrate(1);
+                        }
+
+                        currentStandingSection = getCurrentSelectedSectionIndex();
+                    }
+
                     break;
 
                 case MotionEvent.ACTION_UP:
@@ -863,14 +944,14 @@ public class SpinningWheelView extends RelativeLayout {
 
     }
 
-
     /**
      * A {@link Runnable} for animating the the dialer's fling.
      */
     private class FlingRunnable implements Runnable {
         private final int ANIMATION_DURATION = 100;
-        MediaPlayer tick = MediaPlayer.create(getContext(), R.raw.click);
-        MediaPlayer tada = MediaPlayer.create(getContext(), R.raw.tada);
+        private final MediaPlayer tick = MediaPlayer.create(getContext(), R.raw.click);
+        private final MediaPlayer tada = MediaPlayer.create(getContext(), R.raw.tada);
+
         private float velocity;
         private int currentStandingSection;
 
@@ -962,7 +1043,7 @@ public class SpinningWheelView extends RelativeLayout {
                     vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
                 }
 
-                isReversing = false;
+//                isReversing = false;
                 flingDirection = FlingDirection.STOPPED;
 
                 if (mListener != null) {

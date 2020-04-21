@@ -3,7 +3,7 @@ package com.hifnawy.spinningwheellib.exceptions;
 import com.hifnawy.spinningwheellib.Constants;
 
 /**
- * Created by abicelis on 26/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public class InvalidWheelSectionsException extends RuntimeException {

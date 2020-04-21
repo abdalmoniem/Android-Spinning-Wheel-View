@@ -3,7 +3,7 @@ package com.hifnawy.spinningwheellib.model;
 import androidx.annotation.DrawableRes;
 
 /**
- * Created by abicelis on 26/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public class WheelDrawableSection extends WheelSection {

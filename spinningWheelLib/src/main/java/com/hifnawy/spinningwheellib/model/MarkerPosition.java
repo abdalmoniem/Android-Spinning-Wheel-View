@@ -1,7 +1,7 @@
 package com.hifnawy.spinningwheellib.model;
 
 /**
- * Created by abicelis on 26/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public enum MarkerPosition {

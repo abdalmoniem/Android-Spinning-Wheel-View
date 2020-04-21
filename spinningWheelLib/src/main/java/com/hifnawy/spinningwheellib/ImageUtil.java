@@ -10,7 +10,7 @@ import android.media.ThumbnailUtils;
 import java.util.Arrays;
 
 /**
- * Created by abicelis on 28/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public class ImageUtil {

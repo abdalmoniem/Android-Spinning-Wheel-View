@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 
 /**
- * Created by abicelis on 26/7/2017.
+ * Created by AbdAlMoniem AlHifnawy
  */
 
 public class WheelBitmapSection extends WheelSection {
