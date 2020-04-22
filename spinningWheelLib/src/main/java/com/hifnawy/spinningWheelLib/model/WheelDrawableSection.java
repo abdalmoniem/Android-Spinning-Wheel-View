@@ -1,4 +1,4 @@
-package com.hifnawy.spinningwheellib.model;
+package com.hifnawy.spinningWheelLib.model;
 
 import androidx.annotation.DrawableRes;
 

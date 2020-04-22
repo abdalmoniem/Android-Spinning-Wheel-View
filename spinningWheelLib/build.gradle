@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'android-maven'
 group='com.hifnawy'
-version='1.0.1'
+version='1.0'
 
 android {
     compileSdkVersion 29
@@ -11,7 +11,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
-        versionName "1.0.1"
+        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'

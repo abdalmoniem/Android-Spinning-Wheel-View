@@ -1,4 +1,4 @@
-package com.hifnawy.spinningwheellib.exceptions;
+package com.hifnawy.spinningWheelLib.exceptions;
 
 /**
  * Created by AbdAlMoniem AlHifnawy

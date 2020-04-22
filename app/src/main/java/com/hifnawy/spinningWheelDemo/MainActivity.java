@@ -9,14 +9,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.hifnawy.spinningwheellib.SpinningWheelView;
-import com.hifnawy.spinningwheellib.WheelEventsListener;
-import com.hifnawy.spinningwheellib.model.MarkerPosition;
-import com.hifnawy.spinningwheellib.model.WheelBitmapSection;
-import com.hifnawy.spinningwheellib.model.WheelColorSection;
-import com.hifnawy.spinningwheellib.model.WheelDrawableSection;
-import com.hifnawy.spinningwheellib.model.WheelSection;
-import com.hifnawy.spinningwheellib.model.WheelTextSection;
+import com.hifnawy.spinningWheelLib.SpinningWheelView;
+import com.hifnawy.spinningWheelLib.WheelEventsListener;
+import com.hifnawy.spinningWheelLib.model.MarkerPosition;
+import com.hifnawy.spinningWheelLib.model.WheelBitmapSection;
+import com.hifnawy.spinningWheelLib.model.WheelColorSection;
+import com.hifnawy.spinningWheelLib.model.WheelDrawableSection;
+import com.hifnawy.spinningWheelLib.model.WheelSection;
+import com.hifnawy.spinningWheelLib.model.WheelTextSection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Init wheelView and set parameters
         wheelView = findViewById(R.id.spinningWheelView);
-        wheelView.reInit();
+//        wheelView.reInit();
 
         wheelView.setWheelSections(wheelSections);
 //        wheelView.setWheelSections(new ArrayList<WheelSection>());
@@ -80,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
         wheelView.setWheelSeparatorLineColor(R.color.separator);
         wheelView.setWheelSeparatorLineThickness(2);
+
+//        wheelView.setTickSounds();
 
         //Set onSettled listener
         wheelView.setWheelEventsListener(new WheelEventsListener() {
@@ -158,5 +160,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Finally, generate wheel background
         wheelView.generateWheel();
+
+        wheelView.setFlingVelocityDampening(1.02f);
+
+//        wheelView.flingWheel(10000, 10000, true);
     }
 }

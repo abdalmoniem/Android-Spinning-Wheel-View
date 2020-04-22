@@ -1,4 +1,4 @@
-package com.hifnawy.spinningwheellib;
+package com.hifnawy.spinningWheelLib;
 
 import android.content.res.Resources;
 import android.util.DisplayMetrics;

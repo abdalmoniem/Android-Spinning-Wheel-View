@@ -1,4 +1,4 @@
-package com.hifnawy.spinningwheellib;
+package com.hifnawy.spinningWheelLib;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -18,10 +18,10 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
+import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -30,33 +30,32 @@ import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.hifnawy.spinningwheellib.exceptions.InvalidWheelSectionDataException;
-import com.hifnawy.spinningwheellib.exceptions.InvalidWheelSectionsException;
-import com.hifnawy.spinningwheellib.model.FlingDirection;
-import com.hifnawy.spinningwheellib.model.MarkerPosition;
-import com.hifnawy.spinningwheellib.model.SectionType;
-import com.hifnawy.spinningwheellib.model.WheelBitmapSection;
-import com.hifnawy.spinningwheellib.model.WheelColorSection;
-import com.hifnawy.spinningwheellib.model.WheelDrawableSection;
-import com.hifnawy.spinningwheellib.model.WheelSection;
-import com.hifnawy.spinningwheellib.model.WheelTextSection;
+import com.hifnawy.spinningWheelLib.exceptions.InvalidWheelSectionDataException;
+import com.hifnawy.spinningWheelLib.exceptions.InvalidWheelSectionsException;
+import com.hifnawy.spinningWheelLib.model.FlingDirection;
+import com.hifnawy.spinningWheelLib.model.MarkerPosition;
+import com.hifnawy.spinningWheelLib.model.SectionType;
+import com.hifnawy.spinningWheelLib.model.WheelBitmapSection;
+import com.hifnawy.spinningWheelLib.model.WheelColorSection;
+import com.hifnawy.spinningWheelLib.model.WheelDrawableSection;
+import com.hifnawy.spinningWheelLib.model.WheelSection;
+import com.hifnawy.spinningWheelLib.model.WheelTextSection;
 
 import java.util.List;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-/**
- * Created by AbdAlMoniem AlHifnawy
- */
-
 public class SpinningWheelView extends RelativeLayout {
-    private static float angleOffset;
-    private static Matrix matrix;
 
-    //Internal data
+    // Static internal data
+    private float angleOffset;
+    private Matrix matrix;
+    // Final internal data
+    private MediaPlayer tick;
+    private MediaPlayer tada;
+    // Internal data
     private ImageView mWheel;
     private ImageView mMarker;
     private RelativeLayout mMarkerContainer;
@@ -66,7 +65,7 @@ public class SpinningWheelView extends RelativeLayout {
     private boolean[] quadrantTouched = new boolean[]{false, false, false, false, false};
     private boolean allowRotating = true;
     private FlingRunnable flingRunnable;
-//    private boolean isReversing = false;
+    //    private boolean isReversing = false;
     private FlingDirection flingDirection = FlingDirection.STOPPED;
     private ObjectAnimator rightRotationAnimation;
     private ObjectAnimator leftAnimationRotation;
@@ -86,6 +85,8 @@ public class SpinningWheelView extends RelativeLayout {
     int mWheelSeparatorLineColor = -1;
     private int mWheelSeparatorLineThickness = 10;
     private WheelEventsListener mListener;
+    //    private long flingDuration;
+    private CustomCountDownTimer flingCountDownTimer;
     private float initialFlingDampening = Constants.INITIAL_FLING_VELOCITY_DAMPENING;
     private float flingVelocityDampening = Constants.FLING_VELOCITY_DAMPENING;
     private int globalTextSize;
@@ -93,26 +94,20 @@ public class SpinningWheelView extends RelativeLayout {
     /* Constructors */
     public SpinningWheelView(Context context) {
         super(context);
-
-        mContext = context;
-        init(mContext);
+        init(context);
     }
 
-    public SpinningWheelView(Context context, @Nullable AttributeSet attrs) {
+    public SpinningWheelView(Context context, AttributeSet attrs) {
         super(context, attrs);
-
-        mContext = context;
-        init(mContext);
+        init(context);
     }
 
-    public SpinningWheelView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-
-        mContext = context;
-        init(mContext);
+    public SpinningWheelView(Context context, AttributeSet attrs, int defStyle) {
+        super(context, attrs, defStyle);
+        init(context);
     }
 
-    /* Public getters */
+    /* Public setters / getters */
 
     /**
      * @return currently set wheel sections.
@@ -120,29 +115,6 @@ public class SpinningWheelView extends RelativeLayout {
     public List<WheelSection> getWheelSections() {
         return mWheelSections;
     }
-
-    /**
-     * @return currently set font size for {@link WheelTextSection} sections.
-     */
-    public int getGlobalTextSize() {
-        return globalTextSize;
-    }
-
-    /**
-     * @return generated {@Link ImageView} of the Spinning Wheel.
-     */
-    public ImageView getWheelImageView() {
-        return mWheel;
-    }
-
-    /**
-     * @return current {@Link FlingDirection} of the Spinning Wheel.
-     */
-    public FlingDirection getFlingDirection() {
-        return flingDirection;
-    }
-
-    /* Public setters */
 
     /**
      * Populate a SpinningWheelView with a List of WheelSections such as
@@ -163,10 +135,53 @@ public class SpinningWheelView extends RelativeLayout {
 //        }
 
         if (wheelSections == null) {
-            throw new InvalidWheelSectionsException();
+            throw new InvalidWheelSectionsException("You must use setWheelSections() to set the sections of the wheel.");
         }
 
         mWheelSections = wheelSections;
+    }
+
+    /**
+     * @return currently set font size for {@link WheelTextSection} sections.
+     */
+    public int getGlobalTextSize() {
+        return globalTextSize;
+    }
+
+    /**
+     * Set font size for all @{Link {@link WheelTextSection} sections
+     *
+     * @param globalTextSize {@link WheelTextSection} font size
+     */
+    public void setGlobalTextSize(int globalTextSize) {
+        this.globalTextSize = globalTextSize;
+    }
+
+    /**
+     * @return generated {@link ImageView} of the Spinning Wheel.
+     */
+    public ImageView getWheelImageView() {
+        return mWheel;
+    }
+
+//    /**
+//     * Set spinning wheel duration.
+//     * NOTE that the wheel will not stop
+//     * immediately after the set {@param flingDuration} but its velocity will
+//     * start decelerating with a factor.
+//     *
+//     * @param flingDuration fling duration in milliseconds
+//     * @see SpinningWheelView#setFlingVelocityDampening
+//     */
+//    public void setFlingDuration(long flingDuration) {
+//        this.flingDuration = flingDuration;
+//    }
+
+    /**
+     * @return current {@link FlingDirection} of the Spinning Wheel.
+     */
+    public FlingDirection getFlingDirection() {
+        return flingDirection;
     }
 
     /**
@@ -183,7 +198,10 @@ public class SpinningWheelView extends RelativeLayout {
 
     /**
      * Set the initial fling dampening.
-     * NOTE: A number between 1.0 (no dampening) and 5.0 (lots of dampening) is recommended. Default 3.0
+     *
+     * @param dampening dampening factor
+     *                  NOTE: A number between 1.0 (no dampening) and 5.0 (lots of dampening) is recommended.
+     *                  Default value is {@value Constants#INITIAL_FLING_VELOCITY_DAMPENING}
      */
     public void setInitialFlingDampening(float dampening) {
         initialFlingDampening = dampening;
@@ -191,10 +209,13 @@ public class SpinningWheelView extends RelativeLayout {
 
     /**
      * Set the velocity dampening when wheel is flung.
-     * NOTE: A number between 1 (no dampening) and 1.1 (lots of dampening) is recommended. Default 1.06
+     *
+     * @param dampening dampening factor
+     *                  NOTE: A number between 1 (no dampening) and 1.1 (lots of dampening) is recommended.
+     *                  Default value is {@value Constants#FLING_VELOCITY_DAMPENING}
      */
     public void setFlingVelocityDampening(float dampening) {
-        initialFlingDampening = dampening;
+        flingVelocityDampening = dampening;
     }
 
     /**
@@ -222,6 +243,8 @@ public class SpinningWheelView extends RelativeLayout {
         mWheelSeparatorLineColor = color;
     }
 
+    /* Public methods */
+
     /**
      * Set the thickness of the wheel section separator lines in dp.
      * DEFAULT: No border
@@ -243,6 +266,7 @@ public class SpinningWheelView extends RelativeLayout {
 
     /**
      * Enable or Disable tick vibrations on wheel rotation and fling
+     *
      * @param tickVibrations Enabled if {@code true} - Disabled if {@code false}
      */
     public void setTickVibrations(boolean tickVibrations) {
@@ -254,6 +278,7 @@ public class SpinningWheelView extends RelativeLayout {
     /**
      * Enable or Disable preview mode for the spinning wheel
      * Preview mode disables All {@link WheelEventsListener} listeners attached to the Spinning Wheel
+     *
      * @param preview Enabled if {@code true} - Disabled if {@code false}
      */
     public void setIsPreview(boolean preview) {
@@ -265,28 +290,12 @@ public class SpinningWheelView extends RelativeLayout {
     }
 
     /**
-     * Set font size for all @{Link {@link WheelTextSection} sections
-     * @param globalTextSize {@link WheelTextSection} font size
-     */
-    public void setGlobalTextSize(int globalTextSize) {
-        this.globalTextSize = globalTextSize;
-    }
-
-    /* Public methods */
-
-    /**
      * Re-Initializes the @{Link {@link ImageView} of the spinning wheel and resets all positions of images
      */
     public void reInit() {
-        mMarker = null;
-
-        globalTextSize = 30;
-
-        mWheel = findViewById(R.id.prize_wheel_view_wheel);
-        mMarker = findViewById(R.id.prize_wheel_view_marker);
-        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
-
-        mMarker.setVisibility(View.VISIBLE);
+        mWheel = findViewById(R.id.spinningWheelImageView);
+        mMarker = findViewById(R.id.spinningWheelMarkerImageView);
+        mMarkerContainer = findViewById(R.id.spinningWheelContainer);
 
         mWheel.setScaleType(ImageView.ScaleType.MATRIX);
 
@@ -318,8 +327,6 @@ public class SpinningWheelView extends RelativeLayout {
                     mMarkerContainer.getLayoutParams().width = minDimen;
                     mMarkerContainer.requestLayout();
                     mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
 
                     if (mCanGenerateWheel) {
                         generateWheelImage();
@@ -327,6 +334,8 @@ public class SpinningWheelView extends RelativeLayout {
                 }
             }
         });
+
+        globalTextSize = 30;
     }
 
     /**
@@ -334,66 +343,11 @@ public class SpinningWheelView extends RelativeLayout {
      * DEFAULT: No border
      */
     public void generateWheel() {
-        if (wheelHeight == 0)        //If view doesn't have width/height yet
+        if (wheelHeight == 0) {      //If view doesn't have width/height yet
             mCanGenerateWheel = true;
-        else
+        } else {
             generateWheelImage();
-    }
-
-    /* Internal methods */
-
-    private void init(Context context) {
-        LayoutInflater inflater = (LayoutInflater) context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        inflater.inflate(R.layout.prize_wheel_view, this);
-
-        globalTextSize = 30;
-
-        mWheel = findViewById(R.id.prize_wheel_view_wheel);
-        mMarker = findViewById(R.id.prize_wheel_view_marker);
-        mMarkerContainer = findViewById(R.id.prize_wheel_view_marker_container);
-
-        mMarker.setVisibility(View.VISIBLE);
-
-        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
-
-        matrix = new Matrix();
-
-        gestureDetector = new GestureDetector(context, new WheelGestureListener());
-        touchListener = new WheelTouchListener();
-        mWheel.setOnTouchListener(touchListener);
-
-        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                // method called more than once, but the values only need to be initialized one time
-                if (wheelHeight == 0 || wheelWidth == 0) {
-
-                    //Grab the shortest of the container dimensions
-                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
-
-                    //Apply the margin for the marker. Use those dimensions for the wheel
-                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
-
-                    //Resize the wheel's imageview
-                    mWheel.getLayoutParams().height = wheelHeight;
-                    mWheel.getLayoutParams().width = wheelWidth;
-                    mWheel.requestLayout();
-
-                    //Resize the marker's container
-                    mMarkerContainer.getLayoutParams().height = minDimen;
-                    mMarkerContainer.getLayoutParams().width = minDimen;
-                    mMarkerContainer.requestLayout();
-                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + (wheelHeight / 2));
-//                    mMarkerContainer.setY(mMarkerContainer.getY() + 5f);
-
-                    if (mCanGenerateWheel) {
-                        generateWheelImage();
-                    }
-                }
-            }
-        });
+        }
     }
 
     /**
@@ -418,15 +372,116 @@ public class SpinningWheelView extends RelativeLayout {
 //        }
     }
 
+    /* Private methods */
+
     /**
      * Call this method to manually fling the wheel
+     * NOTE that the wheel will not stop
+     * immediately after the set {@param flingDuration} but its velocity will
+     * start decelerating with a factor.
      *
      * @param velocity  the speed of the fling
      * @param clockwise the direction of the rotation.
      */
     public void flingWheel(int velocity, boolean clockwise) {
 //        isReversing = false;
-        doFlingWheel((clockwise ? -velocity : velocity));
+        doFlingWheel((clockwise ? velocity : -velocity));
+    }
+
+    /**
+     * Call this method to manually fling the wheel
+     *
+     * @param duration  the duration of the fling in milliseconds
+     * @param velocity  the speed of the fling
+     * @param clockwise the direction of the rotation.
+     * @see SpinningWheelView#setFlingVelocityDampening
+     */
+    public void flingWheel(long duration, int velocity, boolean clockwise) {
+//        isReversing = false;
+        doFlingWheel(duration, (clockwise ? velocity : -velocity));
+    }
+
+    /**
+     * @return The selected quadrant.
+     */
+    private static int getQuadrant(double x, double y) {
+        if (x >= 0) {
+            return y >= 0 ? 1 : 4;
+        } else {
+            return y >= 0 ? 2 : 3;
+        }
+    }
+
+    /**
+     * @return The current rotation of the wheel.
+     */
+    private double getCurrentRotation() {
+        float[] v = new float[9];
+        matrix.getValues(v);
+        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
+
+        if (angle > 0) {
+            return angle;
+        } else {
+            return 360 + angle;
+        }
+    }
+
+    private void init(Context context) {
+        mContext = context;
+
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        inflater.inflate(R.layout.spinning_wheel_view, this);
+
+        mWheel = findViewById(R.id.spinningWheelImageView);
+        mMarker = findViewById(R.id.spinningWheelMarkerImageView);
+        mMarkerContainer = findViewById(R.id.spinningWheelContainer);
+
+        matrix = new Matrix();
+
+        gestureDetector = new GestureDetector(mContext, new WheelGestureListener());
+        touchListener = new WheelTouchListener();
+        mWheel.setOnTouchListener(touchListener);
+
+        globalTextSize = 30;
+
+        getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // method called more than once, but the values only need to be initialized one time
+                if (wheelHeight == 0 || wheelWidth == 0) {
+
+                    //Grab the shortest of the container dimensions
+                    int minDimen = wheelHeight = Math.min(getHeight(), getWidth());
+
+                    //Apply the margin for the marker. Use those dimensions for the wheel
+                    wheelHeight = wheelWidth = minDimen - (int) (DimensionUtil.convertDpToPixel(Constants.WHEEL_MARGIN_FOR_MARKER_DP) * 2);
+
+                    //Resize the wheel's imageview
+                    mWheel.getLayoutParams().height = wheelHeight;
+                    mWheel.getLayoutParams().width = wheelWidth;
+                    mWheel.requestLayout();
+
+                    //Resize the marker's container
+                    mMarkerContainer.getLayoutParams().height = minDimen;
+                    mMarkerContainer.getLayoutParams().width = minDimen;
+                    mMarkerContainer.requestLayout();
+                    mMarkerContainer.setRotation(mMarkerPosition.getDegreeOffset());
+
+                    if (mCanGenerateWheel) {
+                        generateWheelImage();
+                    }
+                }
+            }
+        });
+
+        post(new Runnable() {
+            @Override
+            public void run() {
+                tick = MediaPlayer.create(mContext, R.raw.click);
+                tada = MediaPlayer.create(mContext, R.raw.tada);
+            }
+        });
     }
 
     /**
@@ -449,45 +504,21 @@ public class SpinningWheelView extends RelativeLayout {
     }
 
     /**
-     * @return The selected quadrant.
-     */
-    private static int getQuadrant(double x, double y) {
-        if (x >= 0) {
-            return y >= 0 ? 1 : 4;
-        } else {
-            return y >= 0 ? 2 : 3;
-        }
-    }
-
-    /**
-     * @return The current rotation of the wheel.
-     */
-    private static double getCurrentRotation() {
-        float[] v = new float[9];
-        matrix.getValues(v);
-        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
-
-        if (angle > 0) {
-            return angle;
-        } else {
-            return 360 + angle;
-        }
-    }
-
-    /**
      * @return The current section.
      */
     private int getCurrentSelectedSectionIndex() {
         double sectionAngle = (360.0f / mWheelSections.size());
         double currentRotation = getCurrentRotation() + mMarkerPosition.getDegreeOffset();
 
-        if (currentRotation > 360)
+        if (currentRotation > 360) {
             currentRotation = currentRotation - 360;
+        }
 
         int selection = (int) Math.floor(currentRotation / sectionAngle);
 
-        if (selection >= mWheelSections.size())      //Rounding errors occur. Limit to items-1
+        if (selection >= mWheelSections.size()) {     //Rounding errors occur. Limit to items-1
             selection = mWheelSections.size() - 1;
+        }
 
         return selection;
     }
@@ -496,8 +527,11 @@ public class SpinningWheelView extends RelativeLayout {
      * Generates the wheel bitmap
      */
     private void generateWheelImage() {
-        if (mWheelSections == null)
+        mWheel.setScaleType(ImageView.ScaleType.MATRIX);
+
+        if (mWheelSections == null) {
             throw new InvalidWheelSectionsException("You must use setWheelSections() to set the sections of the wheel.");
+        }
 
         // _______________________
         // |                     |
@@ -629,8 +663,9 @@ public class SpinningWheelView extends RelativeLayout {
                 switch (section.getType()) {
                     case BITMAP:
                         sectionBitmap = ((WheelBitmapSection) section).getBitmap();
-                        if (sectionBitmap == null)
+                        if (sectionBitmap == null) {
                             throw new InvalidWheelSectionDataException("Invalid bitmap. WheelSection data = " + section.toString());
+                        }
                         break;
                     case DRAWABLE:
                         //Try to get bitmap drawable (jpg, png) or xml based drawable (xml, layer-list, etc)
@@ -760,14 +795,21 @@ public class SpinningWheelView extends RelativeLayout {
         mWheel.setImageBitmap(result);
     }
 
+    /**
+     * Flings the wheel with a set velocity
+     *
+     * @param velocity the velocity of the fling, if {@code velocity > 0}
+     *                 fling will be CCW, if {@code velocity < 0} fling
+     *                 will be CW
+     */
     private void doFlingWheel(float velocity) {
-
         //Stop previous fling
         removeCallbacks(flingRunnable);
 
         //Notify fling
-        if (mListener != null)
+        if (mListener != null) {
             mListener.onWheelFlung();
+        }
 
         //Launch new fling
         allowRotating = true;
@@ -775,18 +817,45 @@ public class SpinningWheelView extends RelativeLayout {
         post(flingRunnable);
     }
 
+    /**
+     * Flings the wheel with a set velocity
+     *
+     * @param velocity the velocity of the fling, if {@code velocity > 0}
+     *                 fling will be CCW, if {@code velocity < 0} fling
+     *                 will be CW
+     * @param duration fling duration in milliseconds, duration will be
+     *                 applied to the current fling only.
+     */
+    private void doFlingWheel(long duration, float velocity) {
+        //Stop previous fling
+        removeCallbacks(flingRunnable);
+
+        //Notify fling
+        if (mListener != null) {
+            mListener.onWheelFlung();
+        }
+
+        //Launch new fling
+        allowRotating = true;
+        flingRunnable = new FlingRunnable(duration, velocity / initialFlingDampening);
+        post(flingRunnable);
+    }
+
+    /**
+     * Touch Listener for the spinning wheel to react to {@code MotionEvent.ACTION_DOWN},
+     * {@code MotionEvent.ACTION_MOVE}, {@code MotionEvent.ACTION_UP}
+     */
     private class WheelTouchListener implements OnTouchListener {
         private final int ANIMATION_DURATION = 100;
+
         private final float markerRotation = mMarker.getRotation();
-        private final MediaPlayer tick = MediaPlayer.create(getContext(), R.raw.click);
 
         private double startAngle;
         private boolean CW = false;
         private int currentStandingSection;
 
         @Override
-        public boolean onTouch(View v, MotionEvent event) {
-
+        public boolean onTouch(View view, MotionEvent event) {
             switch (event.getAction()) {
 
                 case MotionEvent.ACTION_DOWN:
@@ -802,45 +871,73 @@ public class SpinningWheelView extends RelativeLayout {
                         leftAnimationRotation.end();
                     }
 
-                    break;
+                    leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+                    leftAnimationRotation.setDuration(ANIMATION_DURATION);
 
+                    rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? -50f : 50f));
+                    rightRotationAnimation.setDuration(ANIMATION_DURATION);
+                    rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+
+                            if (!leftAnimationRotation.isRunning()) {
+                                leftAnimationRotation.start();
+                            }
+                        }
+                    });
+
+                    if ((flingCountDownTimer != null) && flingCountDownTimer.isRunning()) {
+                        flingCountDownTimer.stop();
+                    }
+
+                    break;
                 case MotionEvent.ACTION_MOVE:
                     double currentAngle = getAngle(event.getX(), event.getY());
                     rotateWheel((float) (startAngle - currentAngle));
                     startAngle = currentAngle;
 
+
                     if (getCurrentSelectedSectionIndex() != currentStandingSection) {
                         if ((currentStandingSection == (mWheelSections.size() - 1)) && (getCurrentSelectedSectionIndex() == 0)) {
-                            CW = true;
+                            CW = false;
                         } else if ((currentStandingSection == 0) && (getCurrentSelectedSectionIndex() == (mWheelSections.size() - 1))) {
-                            CW = false;
-                        } else if (getCurrentSelectedSectionIndex() > currentStandingSection) {
                             CW = true;
-                        } else {
+                        } else if (getCurrentSelectedSectionIndex() > currentStandingSection) {
                             CW = false;
+                        } else if (getCurrentSelectedSectionIndex() < currentStandingSection) {
+                            CW = true;
                         }
 
-                        leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
-                        leftAnimationRotation.setDuration(ANIMATION_DURATION);
+                        if (!leftAnimationRotation.isRunning()) {
+                            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+                            leftAnimationRotation.setDuration(ANIMATION_DURATION);
+                        } else {
+                            leftAnimationRotation.end();
+                        }
 
-                        rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? 50f : -50f));
-                        rightRotationAnimation.setDuration(ANIMATION_DURATION);
-                        rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
+                        if (!rightRotationAnimation.isRunning()) {
+                            rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? -50f : 50f));
+                            rightRotationAnimation.setDuration(ANIMATION_DURATION);
+                            rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
 
-                                if (!leftAnimationRotation.isRunning()) {
-                                    leftAnimationRotation.start();
+                                    if (!leftAnimationRotation.isRunning()) {
+                                        leftAnimationRotation.start();
+                                    }
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            rightRotationAnimation.end();
+                        }
 
                         if ((rightRotationAnimation != null) && (!rightRotationAnimation.isRunning())) {
                             rightRotationAnimation.start();
                         }
 
-                        if (!tick.isPlaying()) {
+                        if ((tick != null) && !tick.isPlaying()) {
                             tick.start();
                         }
 
@@ -852,10 +949,25 @@ public class SpinningWheelView extends RelativeLayout {
                         currentStandingSection = getCurrentSelectedSectionIndex();
                     }
 
-                    break;
+                    if ((flingCountDownTimer != null) && flingCountDownTimer.isRunning()) {
+                        flingCountDownTimer.stop();
+                    }
 
+                    break;
                 case MotionEvent.ACTION_UP:
                     allowRotating = true;
+                    if (rightRotationAnimation != null) {
+                        rightRotationAnimation.end();
+                    }
+                    if (leftAnimationRotation != null) {
+                        leftAnimationRotation.end();
+                    }
+                    mMarker.setRotation(markerRotation);
+
+                    if ((flingCountDownTimer != null) && flingCountDownTimer.isRunning()) {
+                        flingCountDownTimer.stop();
+                    }
+
                     break;
             }
 
@@ -877,12 +989,12 @@ public class SpinningWheelView extends RelativeLayout {
 
             return (Math.atan2(y, x) * 180) / Math.PI;
         }
-
     }
 
+    /**
+     * Gesture Listener for the spinning wheel to react to fling events
+     */
     private class WheelGestureListener implements GestureDetector.OnGestureListener {
-
-
         @Override
         public boolean onDown(MotionEvent e) {
             return false;
@@ -915,7 +1027,7 @@ public class SpinningWheelView extends RelativeLayout {
             int q1 = getQuadrant(e1.getX() - (wheelWidth / 2), wheelHeight - e1.getY() - (wheelHeight / 2));
             int q2 = getQuadrant(e2.getX() - (wheelWidth / 2), wheelHeight - e2.getY() - (wheelHeight / 2));
 
-            // the inversed rotations
+            // the inverted rotations
             if ((q1 == 2 && q2 == 2 && Math.abs(velocityX) < Math.abs(velocityY))
                     || (q1 == 3 && q2 == 3)
                     || (q1 == 1 && q2 == 3)
@@ -926,78 +1038,146 @@ public class SpinningWheelView extends RelativeLayout {
                     || (q1 == 4 && q2 == 2 && quadrantTouched[3])) {
 
                 doFlingWheel((-1 * (velocityX + velocityY)));
-                //post(new FlingRunnable( (-1 * (velocityX + velocityY)) / initialFlingDampening ));
-                //if(mListener != null)
-                //mListener.onWheelFlung();
+                //post(new FlingRunnable((-1 * (velocityX + velocityY)) / initialFlingDampening));
+                //if(mListener != null) {
+                //    mListener.onWheelFlung();
+                //}
             } else {
                 // the normal rotation
                 doFlingWheel((velocityX + velocityY));
 
-                //post(new FlingRunnable( (velocityX + velocityY) / initialFlingDampening ));
-                //if(mListener != null)
-                //mListener.onWheelFlung();
+                //post(new FlingRunnable((velocityX + velocityY) / initialFlingDampening));
+                //if(mListener != null) {
+                //  mListener.onWheelFlung();
+                //}
             }
 
             return true;
         }
-
-
     }
 
     /**
-     * A {@link Runnable} for animating the the dialer's fling.
+     * A {@link Runnable} for animating the the wheel's fling.
      */
     private class FlingRunnable implements Runnable {
         private final int ANIMATION_DURATION = 100;
-        private final MediaPlayer tick = MediaPlayer.create(getContext(), R.raw.click);
-        private final MediaPlayer tada = MediaPlayer.create(getContext(), R.raw.tada);
 
         private float velocity;
         private int currentStandingSection;
+        private float markerRotation = mMarker.getRotation();
 
         public FlingRunnable(float velocity) {
+            flingInit(velocity);
+
+//            if (flingDuration > 0) {
+//                if (flingCountDownTimer != null) {
+//                    flingCountDownTimer.cancel();
+//                }
+//
+//                flingCountDownTimer = new CountDownTimer(flingDuration, 500) {
+//                    private float flingVelocityDampeningTmp = flingVelocityDampening;
+//
+//                    @Override
+//                    public void onTick(long l) {
+//                        flingVelocityDampening = 1f;
+//                    }
+//
+//                    @Override
+//                    public void onFinish() {
+//                        flingVelocityDampening = flingVelocityDampeningTmp;
+//                    }
+//
+//                    @Override
+//                    public void onStopped() {
+//                        flingVelocityDampening = flingVelocityDampeningTmp;
+//                        super.cancel();
+//                    }
+//                };
+//                flingCountDownTimer.startCountDown();
+//            }
+        }
+
+        public FlingRunnable(long duration, float velocity) {
+            flingInit(velocity);
+
+            if (duration > 0) {
+                if (flingCountDownTimer != null) {
+                    flingCountDownTimer.cancel();
+                }
+
+                flingCountDownTimer = new CustomCountDownTimer(duration, 500) {
+                    private float flingVelocityDampeningTmp = flingVelocityDampening;
+
+                    @Override
+                    public void onTick(long l) {
+                        flingVelocityDampening = 1f;
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        flingVelocityDampening = flingVelocityDampeningTmp;
+                    }
+
+                    @Override
+                    public void onStopped() {
+                        flingVelocityDampening = flingVelocityDampeningTmp;
+                        super.cancel();
+                    }
+                };
+
+                flingCountDownTimer.startCountDown();
+            }
+        }
+
+        private void flingInit(float velocity) {
             this.velocity = velocity;
             this.currentStandingSection = getCurrentSelectedSectionIndex();
 
-
-            boolean change = false;
-
-            if ((flingDirection == FlingDirection.CW) && (velocity > 0)) {
-                change = true;
+            if (rightRotationAnimation != null) {
+                rightRotationAnimation.end();
             }
-            if ((flingDirection == FlingDirection.CCW) && (velocity < 0)) {
-                change = true;
-            }
-            if (flingDirection == FlingDirection.STOPPED) {
-                change = true;
+            if (leftAnimationRotation != null) {
+                leftAnimationRotation.end();
             }
 
-            flingDirection = (velocity < 0) ? FlingDirection.CW : FlingDirection.CCW;
+            if ((flingDirection == FlingDirection.CW) && (velocity < 0)) {  // wheel changed direction to CCW
+                // rotate marker CW
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + 50f);
+            } else if ((flingDirection == FlingDirection.CW) && (velocity > 0)) {   // wheel is still CW
+                // rotate marker CCW
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation - 50f);
+            }
 
-            if (change) {
-                if (rightRotationAnimation != null) {
-                    rightRotationAnimation.end();
-                }
-                if (leftAnimationRotation != null) {
-                    leftAnimationRotation.end();
-                }
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", mMarker.getRotation() + ((velocity < 0) ? 50f : -50f));
-                rightRotationAnimation.setDuration(ANIMATION_DURATION);
+            if ((flingDirection == FlingDirection.CCW) && (velocity > 0)) { // wheel changed direction to CW
+                // rotate marker CCW
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation - 50f);
+            } else if ((flingDirection == FlingDirection.CCW) && (velocity < 0)) {  // wheel is still CCW
+                // rotate marker CW
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + 50f);
+            }
 
-                leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", mMarker.getRotation());
-                leftAnimationRotation.setDuration(ANIMATION_DURATION);
+            if (flingDirection == FlingDirection.STOPPED) { // wheel is stopped
+                // rotate marker CCW if wheel is rotating CW (velocity > 0) and vice versa
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + ((velocity > 0) ? -50f : 50f));
+            }
 
-                rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        super.onAnimationEnd(animation);
+            rightRotationAnimation.setDuration(ANIMATION_DURATION);
 
-                        if (!leftAnimationRotation.isRunning()) {
-                            leftAnimationRotation.start();
-                        }
+            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+            leftAnimationRotation.setDuration(ANIMATION_DURATION);
+
+            rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+
+                    if (!leftAnimationRotation.isRunning()) {
+                        leftAnimationRotation.start();
                     }
-                });
-            }
+                }
+            });
+
+            flingDirection = (velocity > 0) ? FlingDirection.CW : FlingDirection.CCW;
         }
 
         @Override
@@ -1009,7 +1189,7 @@ public class SpinningWheelView extends RelativeLayout {
 
                 currentStandingSection = getCurrentSelectedSectionIndex();
 
-                if (!tick.isPlaying()) {
+                if ((tick != null) && !tick.isPlaying()) {
                     tick.start();
                 }
 
@@ -1036,18 +1216,33 @@ public class SpinningWheelView extends RelativeLayout {
                 // post this instance again
                 post(this);
             } else {
-                tada.start();
+                if (tada != null) {
+                    tada.start();
+                }
 
                 if (tickVibrations) {
                     // long vibration
                     vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
                 }
 
-//                isReversing = false;
-                flingDirection = FlingDirection.STOPPED;
-
                 if (mListener != null) {
-                    mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                    new CountDownTimer(500, 20) {
+                        @Override
+                        public void onTick(long l) {
+                            if (flingDirection == FlingDirection.CW) {
+                                rotateWheel(0.05f);
+                            } else if (flingDirection == FlingDirection.CCW) {
+                                rotateWheel(-0.05f);
+                            }
+                        }
+
+                        @Override
+                        public void onFinish() {
+//                            isReversing = false;
+                            flingDirection = FlingDirection.STOPPED;
+                            mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                        }
+                    }.start();
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.hifnawy.spinningwheellib;
+package com.hifnawy.spinningWheelLib;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
