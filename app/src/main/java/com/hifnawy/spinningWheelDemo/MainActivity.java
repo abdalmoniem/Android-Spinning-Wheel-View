@@ -164,5 +164,6 @@ public class MainActivity extends AppCompatActivity {
         wheelView.setFlingVelocityDampening(1.02f);
 
 //        wheelView.flingWheel(10000, 10000, true);
+//        wheelView.flingWheel(1000, true);
     }
 }
