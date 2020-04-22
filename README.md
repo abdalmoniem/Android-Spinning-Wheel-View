@@ -16,7 +16,7 @@ Please see the sample application below!
 
 
 ## Sample application
-<a target="_blank" href='https://github.com/abdalmoniem/Android-Spinning-Wheel-View/releases/download/1.1.2/app-debug.apk'><img alt='Download Sample Application' src='assets/download_button.png' width="240px"/></a>
+<a target="_blank" href='https://github.com/abdalmoniem/Android-Spinning-Wheel-View/releases/download/1.1.3/app-debug.apk'><img alt='Download Sample Application' src='assets/download_button.png' width="240px"/></a>
 
 
 ## Gradle dependency
