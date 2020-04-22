@@ -1,8 +1,10 @@
 package com.hifnawy.spinningWheelDemo;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -163,7 +165,11 @@ public class MainActivity extends AppCompatActivity {
 
         wheelView.setFlingVelocityDampening(1.02f);
 
-//        wheelView.flingWheel(10000, 10000, true);
+        wheelView.flingWheel(3000, 10000, true);
 //        wheelView.flingWheel(1000, true);
+    }
+
+    public void nextActivity(View view) {
+        startActivity(new Intent(MainActivity.this, NextActivity.class));
     }
 }

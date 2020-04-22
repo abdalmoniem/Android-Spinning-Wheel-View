@@ -22,6 +22,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -48,14 +49,13 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 public class SpinningWheelView extends RelativeLayout {
-
-    // Static internal data
-    private float angleOffset;
-    private Matrix matrix;
     // Final internal data
     private MediaPlayer tick;
     private MediaPlayer tada;
+
     // Internal data
+    private float angleOffset;
+    private Matrix matrix;
     private ImageView mWheel;
     private ImageView mMarker;
     private RelativeLayout mMarkerContainer;
@@ -105,6 +105,50 @@ public class SpinningWheelView extends RelativeLayout {
     public SpinningWheelView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
+    }
+
+    @Override
+    protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        if (visibility == View.VISIBLE) {
+            //onResume called
+            if (flingRunnable != null) {
+                flingRunnable.resume();
+            }
+        } else {
+            // onPause() called
+            if (flingRunnable != null) {
+                flingRunnable.pause();
+            }
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasWindowFocus) {
+        super.onWindowFocusChanged(hasWindowFocus);
+        if (hasWindowFocus) {
+            //onResume() called
+            if (flingRunnable != null) {
+                flingRunnable.resume();
+            }
+        } else {
+            // onPause() called
+            if (flingRunnable != null) {
+                flingRunnable.pause();
+            }
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        // onCreate() called
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        // onDestroy() called
     }
 
     /* Public setters / getters */
@@ -157,13 +201,6 @@ public class SpinningWheelView extends RelativeLayout {
         this.globalTextSize = globalTextSize;
     }
 
-    /**
-     * @return generated {@link ImageView} of the Spinning Wheel.
-     */
-    public ImageView getWheelImageView() {
-        return mWheel;
-    }
-
 //    /**
 //     * Set spinning wheel duration.
 //     * NOTE that the wheel will not stop
@@ -176,6 +213,13 @@ public class SpinningWheelView extends RelativeLayout {
 //    public void setFlingDuration(long flingDuration) {
 //        this.flingDuration = flingDuration;
 //    }
+
+    /**
+     * @return generated {@link ImageView} of the Spinning Wheel.
+     */
+    public ImageView getWheelImageView() {
+        return mWheel;
+    }
 
     /**
      * @return current {@link FlingDirection} of the Spinning Wheel.
@@ -235,6 +279,8 @@ public class SpinningWheelView extends RelativeLayout {
             mWheelBorderLineThickness = thickness;
     }
 
+    /* Public methods */
+
     /**
      * Set the color of the wheel section separator lines.
      * DEFAULT: No border
@@ -242,8 +288,6 @@ public class SpinningWheelView extends RelativeLayout {
     public void setWheelSeparatorLineColor(@ColorRes int color) {
         mWheelSeparatorLineColor = color;
     }
-
-    /* Public methods */
 
     /**
      * Set the thickness of the wheel section separator lines in dp.
@@ -350,6 +394,8 @@ public class SpinningWheelView extends RelativeLayout {
         }
     }
 
+    /* Private methods */
+
     /**
      * Call this method to manually stop the wheel
      */
@@ -371,8 +417,6 @@ public class SpinningWheelView extends RelativeLayout {
 //            }
 //        }
     }
-
-    /* Private methods */
 
     /**
      * Call this method to manually fling the wheel
@@ -399,32 +443,6 @@ public class SpinningWheelView extends RelativeLayout {
     public void flingWheel(long duration, int velocity, boolean clockwise) {
 //        isReversing = false;
         doFlingWheel(duration, (clockwise ? velocity : -velocity));
-    }
-
-    /**
-     * @return The selected quadrant.
-     */
-    private static int getQuadrant(double x, double y) {
-        if (x >= 0) {
-            return y >= 0 ? 1 : 4;
-        } else {
-            return y >= 0 ? 2 : 3;
-        }
-    }
-
-    /**
-     * @return The current rotation of the wheel.
-     */
-    private double getCurrentRotation() {
-        float[] v = new float[9];
-        matrix.getValues(v);
-        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
-
-        if (angle > 0) {
-            return angle;
-        } else {
-            return 360 + angle;
-        }
     }
 
     private void init(Context context) {
@@ -495,11 +513,37 @@ public class SpinningWheelView extends RelativeLayout {
     }
 
     /**
+     * @return The selected quadrant.
+     */
+    private int getQuadrant(double x, double y) {
+        if (x >= 0) {
+            return y >= 0 ? 1 : 4;
+        } else {
+            return y >= 0 ? 2 : 3;
+        }
+    }
+
+    /**
      * Reset touch quadrants to false.
      */
     private void resetQuadrants() {
         for (int i = 0; i < quadrantTouched.length; i++) {
             quadrantTouched[i] = false;
+        }
+    }
+
+    /**
+     * @return The current rotation of the wheel.
+     */
+    private double getCurrentRotation() {
+        float[] v = new float[9];
+        matrix.getValues(v);
+        double angle = Math.round((Math.atan2(v[Matrix.MSKEW_X], v[Matrix.MSCALE_X]) * (180 / Math.PI)) - angleOffset) - 90f;
+
+        if (angle > 0) {
+            return angle;
+        } else {
+            return 360 + angle;
         }
     }
 
@@ -1062,6 +1106,7 @@ public class SpinningWheelView extends RelativeLayout {
     private class FlingRunnable implements Runnable {
         private final int ANIMATION_DURATION = 100;
 
+        private boolean paused = false;
         private float velocity;
         private int currentStandingSection;
         private float markerRotation = mMarker.getRotation();
@@ -1180,70 +1225,82 @@ public class SpinningWheelView extends RelativeLayout {
             flingDirection = (velocity > 0) ? FlingDirection.CW : FlingDirection.CCW;
         }
 
+        public void pause() {
+            this.paused = true;
+        }
+
+        public void resume() {
+            this.paused = false;
+        }
+
         @Override
         public void run() {
-            if (getCurrentSelectedSectionIndex() != currentStandingSection) {
-                if ((rightRotationAnimation != null) && (!rightRotationAnimation.isRunning())) {
-                    rightRotationAnimation.start();
-                }
+            if (!this.paused) {
+                if (getCurrentSelectedSectionIndex() != currentStandingSection) {
+                    if ((rightRotationAnimation != null) && (!rightRotationAnimation.isRunning())) {
+                        rightRotationAnimation.start();
+                    }
 
-                currentStandingSection = getCurrentSelectedSectionIndex();
+                    currentStandingSection = getCurrentSelectedSectionIndex();
 
-                if ((tick != null) && !tick.isPlaying()) {
-                    tick.start();
-                }
+                    if ((tick != null) && !tick.isPlaying()) {
+                        tick.start();
+                    }
 
-                if (tickVibrations) {
-                    // small vibration
-                    vibrator.vibrate(1);
-                }
-            }
-
-            if (mListener != null) {
-                if (mWheelSections.size() > 0) {
-                    mListener.onWheelSectionChanged(getCurrentSelectedSectionIndex(), getCurrentRotation());
-                }
-            }
-
-            if (!allowRotating) {        //Fling has been stopped, so stop now.
-                if (mListener != null) {
-                    mListener.onWheelStopped();
-                }
-            } else if (Math.abs(velocity) > 5) {
-                rotateWheel(velocity / 75);
-                velocity /= flingVelocityDampening;
-
-                // post this instance again
-                post(this);
-            } else {
-                if (tada != null) {
-                    tada.start();
-                }
-
-                if (tickVibrations) {
-                    // long vibration
-                    vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
+                    if (tickVibrations) {
+                        // small vibration
+                        vibrator.vibrate(1);
+                    }
                 }
 
                 if (mListener != null) {
-                    new CountDownTimer(500, 20) {
-                        @Override
-                        public void onTick(long l) {
-                            if (flingDirection == FlingDirection.CW) {
-                                rotateWheel(0.05f);
-                            } else if (flingDirection == FlingDirection.CCW) {
-                                rotateWheel(-0.05f);
+                    if (mWheelSections.size() > 0) {
+                        mListener.onWheelSectionChanged(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                    }
+                }
+
+                if (!allowRotating) {        //Fling has been stopped, so stop now.
+                    if (mListener != null) {
+                        mListener.onWheelStopped();
+                    }
+                } else if (Math.abs(velocity) > 5) {
+                    rotateWheel(velocity / 75);
+                    velocity /= flingVelocityDampening;
+
+                    // post this instance again
+                    post(this);
+                } else {
+                    if (tada != null) {
+                        tada.start();
+                    }
+
+                    if (tickVibrations) {
+                        // long vibration
+                        vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
+                    }
+
+                    if (mListener != null) {
+                        new CountDownTimer(500, 20) {
+                            @Override
+                            public void onTick(long l) {
+                                if (flingDirection == FlingDirection.CW) {
+                                    rotateWheel(0.05f);
+                                } else if (flingDirection == FlingDirection.CCW) {
+                                    rotateWheel(-0.05f);
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onFinish() {
+                            @Override
+                            public void onFinish() {
 //                            isReversing = false;
-                            flingDirection = FlingDirection.STOPPED;
-                            mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
-                        }
-                    }.start();
+                                flingDirection = FlingDirection.STOPPED;
+                                mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
+                            }
+                        }.start();
+                    }
                 }
+            } else {
+                postDelayed(this, 500);
             }
         }
     }
