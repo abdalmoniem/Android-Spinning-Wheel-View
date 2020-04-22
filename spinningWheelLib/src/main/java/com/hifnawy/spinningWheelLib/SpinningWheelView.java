@@ -1270,15 +1270,6 @@ public class SpinningWheelView extends RelativeLayout {
                     // post this instance again
                     post(this);
                 } else {
-                    if (tada != null) {
-                        tada.start();
-                    }
-
-                    if (tickVibrations) {
-                        // long vibration
-                        vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
-                    }
-
                     if (mListener != null) {
                         new CountDownTimer(500, 20) {
                             @Override
@@ -1295,6 +1286,16 @@ public class SpinningWheelView extends RelativeLayout {
                             public void onFinish() {
 //                            isReversing = false;
                                 flingDirection = FlingDirection.STOPPED;
+
+                                if (tada != null) {
+                                    tada.start();
+                                }
+
+                                if (tickVibrations) {
+                                    // long vibration
+                                    vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
+                                }
+                                
                                 mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
                             }
                         }.start();
