@@ -50,12 +50,11 @@ so it becomes:
 
 1) **Add the view to your layout**
 ```xml
-	<​com​.hifnawy.spinningWheelLib.SpinningWheelView
+<​com​.hifnawy.spinningWheelLib.SpinningWheelView
 		android:id="@+id/home_spinning_wheel_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:layout_gravity="center"
-	/>
+		android:layout_gravity="center" />
 ```
 
 *Note that you can set **layout_width** and **layout_height** to predefined values, or one or both to **match_parent**. The View will take as much space as it can, while still being square.*
@@ -64,56 +63,56 @@ so it becomes:
 
 2) **In your view class (activity/fragment)**
 ```java
-	//Get the wheel view
-	wheelView = (SpinningWheelView) findViewById(R.id.home_prize_wheel_view);
+//Get the wheel view
+wheelView = (SpinningWheelView) findViewById(R.id.home_prize_wheel_view);
 	
-	//Populate a List of Sections
-	List<WheelSection> wheelSections = new ArrayList<>();
-	wheelSections.add(new WheelBitmapSection(someBitmap));
-	wheelSections.add(new WheelDrawableSection(R.drawable.some_drawable));
-	wheelSections.add(new WheelColorSection(R.color.some_color));
+//Populate a List of Sections
+List<WheelSection> wheelSections = new ArrayList<>();
+wheelSections.add(new WheelBitmapSection(someBitmap));
+wheelSections.add(new WheelDrawableSection(R.drawable.some_drawable));
+wheelSections.add(new WheelColorSection(R.color.some_color));
 	
-	//Set those sections
-	wheelView.setWheelSections(wheelSections);
+//Set those sections
+wheelView.setWheelSections(wheelSections);
 	
-	//Finally, generate wheel
-	wheelView.generateWheel();
+//Finally, generate wheel
+wheelView.generateWheel();
 ```
 
 
 3) **Listen for wheel events**
 ```java
-	mWheelView.setWheelEventsListener(new WheelEventsListener() {
-		@Override
-		public void onWheelStopped() {
-			//Handle wheel stopped here
-		}
+mWheelView.setWheelEventsListener(new WheelEventsListener() {
+	@Override
+	public void onWheelStopped() {
+		//Handle wheel stopped here
+	}
 		
-		@Override
-		public void onWheelFlung() {
-			//Handle wheel flinging here
-		}
+	@Override
+	public void onWheelFlung() {
+		//Handle wheel flinging here
+	}
 		
-		@Override
-		public void onWheelSettled(int sectionIndex, double angle) {
-			//Handle wheel settle here
-		}
-	});
+	@Override
+	public void onWheelSettled(int sectionIndex, double angle) {
+		//Handle wheel settle here
+	}
+});
 
 ```
 
 
 4) **Set even more options**
 ```java
-	wheelView.setMarkerPosition(MarkerPosition.TOP_RIGHT);
+wheelView.setMarkerPosition(MarkerPosition.TOP_RIGHT);
 	
-	wheelView.setWheelBorderLineColor(R.color.border);
-	wheelView.setWheelBorderLineThickness(5);
+wheelView.setWheelBorderLineColor(R.color.border);
+wheelView.setWheelBorderLineThickness(5);
 	
-	wheelView.setWheelSeparatorLineColor(R.color.separator);
-	wheelView.setWheelSeparatorLineThickness(5);
+wheelView.setWheelSeparatorLineColor(R.color.separator);
+wheelView.setWheelSeparatorLineThickness(5);
 	
-	//Set onSettled listener
-	wheelView.setWheelEventsListener(new WheelEventsListener() {...});
+//Set onSettled listener
+wheelView.setWheelEventsListener(new WheelEventsListener() {...});
 ```
-*Note that **wheelView.generateWheel();** must be called **after** setting all the options!!*
+>Note that **wheelView.generateWheel();** must be called **after** setting all the options!!>
