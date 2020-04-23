@@ -22,28 +22,28 @@ Please see the sample application below!
 ## Gradle dependency
 in your **app/build.gradle** add the following:
 ```javascript
-	dependencies {
-		implementation 'com.github.abdalmoniem:Android-Spinning-Wheel-View:1.1.4'
-	}
+dependencies {
+	implementation 'com.github.abdalmoniem:Android-Spinning-Wheel-View:1.1.4'
+}
 ```
 
 in your **root/build.gradle** ***allprojects*** add the following:
 ```javascript
-	maven {
-		url 'https://jitpack.io'
-	}
+maven {
+	url 'https://jitpack.io'
+}
 ```
 so it becomes:
 ```javascript
-	allprojects {
-		repositories {
-			google()
-			jcenter()
-			maven {
-				url 'https://jitpack.io'
-			}
+allprojects {
+	repositories {
+		google()
+		jcenter()
+		maven {
+			url 'https://jitpack.io'
 		}
 	}
+}
 ```
 
 ## Usage
@@ -51,10 +51,10 @@ so it becomes:
 1) **Add the view to your layout**
 ```xml
 <​com​.hifnawy.spinningWheelLib.SpinningWheelView
-		android:id="@+id/home_spinning_wheel_view"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_gravity="center" />
+	android:id="@+id/home_spinning_wheel_view"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:layout_gravity="center" />
 ```
 
 *Note that you can set **layout_width** and **layout_height** to predefined values, or one or both to **match_parent**. The View will take as much space as it can, while still being square.*
