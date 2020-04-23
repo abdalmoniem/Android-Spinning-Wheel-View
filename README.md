@@ -51,10 +51,10 @@ allprojects {
 1) **Add the view to your layout**
 ```xml
 <​com​.hifnawy.spinningWheelLib.SpinningWheelView
-	android:id="@+id/home_spinning_wheel_view"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:layout_gravity="center" />
+		android:id="@+id/home_spinning_wheel_view"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:layout_gravity="center" />
 ```
 
 *Note that you can set **layout_width** and **layout_height** to predefined values, or one or both to **match_parent**. The View will take as much space as it can, while still being square.*
