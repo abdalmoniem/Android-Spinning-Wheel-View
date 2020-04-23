@@ -50,7 +50,7 @@ so it becomes:
 
 1) **Add the view to your layout**
 ```xml
-	<ve.com.abicelis.prizewheellib.PrizeWheelView
+	<​com​.hifnawy.spinningWheelLib.SpinningWheelView
 		android:id="@+id/home_spinning_wheel_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
