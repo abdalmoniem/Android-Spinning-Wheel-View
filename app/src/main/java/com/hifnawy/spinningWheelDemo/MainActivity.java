@@ -1,37 +1,46 @@
 package com.hifnawy.spinningWheelDemo;
 
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import java.util.List;
+import java.util.Random;
+import java.util.ArrayList;
+
 import android.os.Bundle;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
+import android.graphics.Color;
+import android.widget.TextView;
+import android.graphics.Bitmap;
+import android.widget.ImageView;
+import android.animation.Animator;
+import android.graphics.BitmapFactory;
+import android.view.animation.Animation;
+import android.animation.ObjectAnimator;
+import android.view.animation.AnimationUtils;
+import android.animation.AnimatorListenerAdapter;
 
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.hifnawy.spinningWheelLib.DimensionUtil;
 import com.hifnawy.spinningWheelLib.SpinningWheelView;
+import com.hifnawy.spinningWheelLib.model.WheelSection;
 import com.hifnawy.spinningWheelLib.WheelEventsListener;
 import com.hifnawy.spinningWheelLib.model.MarkerPosition;
-import com.hifnawy.spinningWheelLib.model.WheelBitmapSection;
-import com.hifnawy.spinningWheelLib.model.WheelColorSection;
-import com.hifnawy.spinningWheelLib.model.WheelDrawableSection;
-import com.hifnawy.spinningWheelLib.model.WheelSection;
 import com.hifnawy.spinningWheelLib.model.WheelTextSection;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+import com.hifnawy.spinningWheelLib.model.WheelColorSection;
+import com.hifnawy.spinningWheelLib.model.WheelBitmapSection;
+import com.hifnawy.spinningWheelLib.model.WheelDrawableSection;
 
 public class MainActivity extends AppCompatActivity {
-
     final List<WheelSection> wheelSections = new ArrayList<>();
+
     ImageView homeImage;
     TextView homeText;
     SpinningWheelView wheelView;
+
+    float homeTextScaleX;
+    float homeTextScaleY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
 
         homeImage = findViewById(R.id.mainBackgroundImage);
         homeText = findViewById(R.id.mainTextView);
+
+        homeTextScaleX = homeText.getScaleX();
+        homeTextScaleY = homeText.getScaleY();
 
         Bitmap someBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.abstract_1);
 
@@ -71,10 +83,8 @@ public class MainActivity extends AppCompatActivity {
 
         //Init wheelView and set parameters
         wheelView = findViewById(R.id.spinningWheelView);
-//        wheelView.reInit();
 
         wheelView.setWheelSections(wheelSections);
-//        wheelView.setWheelSections(new ArrayList<WheelSection>());
         wheelView.setMarkerPosition(MarkerPosition.TOP);
 
         wheelView.setWheelBorderLineColor(R.color.border);
@@ -83,9 +93,7 @@ public class MainActivity extends AppCompatActivity {
         wheelView.setWheelSeparatorLineColor(R.color.separator);
         wheelView.setWheelSeparatorLineThickness(2);
 
-//        wheelView.setTickSounds();
-
-        //Set onSettled listener
+        //Set wheelEventsListener
         wheelView.setWheelEventsListener(new WheelEventsListener() {
             @Override
             public void onWheelStopped() {
@@ -94,14 +102,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onWheelFlung() {
+                ObjectAnimator animatorX = ObjectAnimator.ofFloat(homeText, "scaleX", homeTextScaleX);
+                ObjectAnimator animatorY = ObjectAnimator.ofFloat(homeText, "scaleY", homeTextScaleY);
+
+                animatorX.setDuration(500);
+                animatorY.setDuration(500);
+
+                animatorX.start();
+                animatorY.start();
+
                 Toast.makeText(MainActivity.this, "Wheel Flung", Toast.LENGTH_SHORT).show();
-                homeText.setTextColor(0xff000000);
             }
 
             @Override
             public void onWheelSectionChanged(int sectionIndex, double angle) {
-//                Toast.makeText(MainActivity.this, "Wheel Section Changed", Toast.LENGTH_SHORT).show();
-
                 WheelSection section = wheelView.getWheelSections().get(sectionIndex);
                 switch (section.getType()) {
                     case TEXT:
@@ -111,12 +125,46 @@ public class MainActivity extends AppCompatActivity {
                         homeText.setText("Section #" + sectionIndex);
                         break;
                 }
+
+                // Toast.makeText(MainActivity.this, "Wheel Section Changed", Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onWheelSettled(int sectionIndex, double angle) {
                 final int selectedIndex = sectionIndex;
-                Toast.makeText(MainActivity.this, "Wheel Settled", Toast.LENGTH_SHORT).show();
+                final float scaleUpFactor = 6f;
+                final float scaleDownFactor = 2f;
+
+                ObjectAnimator animatorX = ObjectAnimator.ofFloat(homeText, "scaleX", homeText.getScaleX() + DimensionUtil.convertPixelsToDp(scaleUpFactor));
+                ObjectAnimator animatorY = ObjectAnimator.ofFloat(homeText, "scaleY", homeText.getScaleY() + DimensionUtil.convertPixelsToDp(scaleUpFactor));
+                animatorX.setDuration(300);
+                animatorY.setDuration(300);
+
+                animatorX.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        ObjectAnimator animatorXX = ObjectAnimator.ofFloat(homeText, "scaleX",
+                                homeText.getScaleX() - DimensionUtil.convertPixelsToDp(scaleDownFactor));
+                        animatorXX.setDuration(300);
+                        animatorXX.start();
+                    }
+                });
+
+                animatorY.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+
+                        ObjectAnimator animatorYY = ObjectAnimator.ofFloat(homeText, "scaleY",
+                                homeText.getScaleY() - DimensionUtil.convertPixelsToDp(scaleDownFactor));
+                        animatorYY.setDuration(300);
+                        animatorYY.start();
+                    }
+                });
+
+                animatorX.start();
+                animatorY.start();
 
                 Animation fadeOut = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out);
                 homeImage.startAnimation(fadeOut);
@@ -128,48 +176,111 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
-
                         if ((wheelSections.size() > 0) && selectedIndex >= 0) {
+                            int textC;
                             WheelSection section = wheelSections.get(selectedIndex);
                             switch (section.getType()) {
                                 case TEXT:
                                     homeImage.setImageDrawable(null);
                                     homeImage.setBackgroundColor(((WheelTextSection) section).getBackgroundColor());
-                                    homeText.setTextColor(((WheelTextSection) section).getForegroundColor());
+                                    MainActivity.this.homeText.setTextColor(((WheelTextSection) section).getForegroundColor());
                                     break;
                                 case BITMAP:
                                     homeImage.setImageBitmap(((WheelBitmapSection) section).getBitmap());
+                                    int bmB = calculateBrightnessEstimate(((WheelBitmapSection) section).getBitmap(), 10);
+
+                                    // Toast.makeText(MainActivity.this, "bitmap brightness: " + bmB, Toast.LENGTH_SHORT).show();
+
+                                    textC = ~bmB;
+
+                                    MainActivity.this.homeText.setTextColor(Color.rgb(textC, textC, textC));
+
                                     break;
                                 case DRAWABLE:
                                     homeImage.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), ((WheelDrawableSection) section).getDrawableRes()));
+                                    Bitmap drawableBitmap = BitmapFactory.decodeResource(getResources(), ((WheelDrawableSection) section).getDrawableRes());
+
+                                    if (drawableBitmap != null) {
+                                        int dB = calculateBrightnessEstimate(drawableBitmap, 10);
+
+                                        // Toast.makeText(MainActivity.this, "drawable brightness: " + dB, Toast.LENGTH_SHORT).show();
+
+                                        textC = ~dB;
+
+                                        MainActivity.this.homeText.setTextColor(Color.rgb(textC, textC, textC));
+                                    }
+
                                     break;
                                 case COLOR:
                                     homeImage.setImageDrawable(null);
                                     homeImage.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), ((WheelColorSection) section).getColor()));
+
+                                    int cB = calculateBrightnessEstimate(((WheelColorSection) section).getColor());
+
+                                    textC = ~cB;
+
+                                    MainActivity.this.homeText.setTextColor(Color.rgb(textC, textC, textC));
+
                                     break;
+                                default:
+                                    Toast.makeText(MainActivity.this, "Unkown Wheel Section Type Landed", Toast.LENGTH_SHORT).show();
                             }
 
                             Animation fadeIn = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in);
                             homeImage.startAnimation(fadeIn);
                         }
                     }
+
                     @Override
                     public void onAnimationRepeat(Animation animation) {
                     }
                 });
+
+                Toast.makeText(MainActivity.this, "Wheel Settled", Toast.LENGTH_SHORT).show();
             }
         });
 
         //Finally, generate wheel background
         wheelView.generateWheel();
 
-        wheelView.setFlingVelocityDampening(1.02f);
+        wheelView.setFlingVelocityDampening(1.01f);
 
+        // wheelView.flingWheel(1000, true);
         wheelView.flingWheel(3000, 10000, true);
-//        wheelView.flingWheel(1000, true);
+    }
+
+    public int calculateBrightnessEstimate(int color) {
+        int R = (color >> 16) & 0xFF;
+        int G = (color >> 8) & 0xFF;
+        int B = (color >> 0) & 0xFF;
+
+        return (R + B + G) / 3;
+    }
+
+    public int calculateBrightnessEstimate(Bitmap bitmap, int increment) {
+        int R = 0;
+        int G = 0;
+        int B = 0;
+        int height = bitmap.getHeight();
+        int width = bitmap.getWidth();
+        int n = 0;
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        for (int i = 0; i < pixels.length; i += increment) {
+            int color = pixels[i];
+            R += Color.red(color);
+            G += Color.green(color);
+            B += Color.blue(color);
+            n++;
+        }
+        return (R + B + G) / (n * 3);
     }
 
     public void nextActivity(View view) {
         startActivity(new Intent(MainActivity.this, NextActivity.class));
+    }
+
+    public void flingWheel(View view) {
+        wheelView.flingWheel(1000 + (1000 * (int) Math.pow(2, new Random().nextInt(10))), (new Random().nextFloat() > 0.5));
     }
 }

@@ -58,6 +58,7 @@ public class SpinningWheelView extends RelativeLayout {
     private Matrix matrix;
     private ImageView mWheel;
     private ImageView mMarker;
+    private float markerInitialRotation;
     private RelativeLayout mMarkerContainer;
     private int wheelHeight, wheelWidth;
     private GestureDetector gestureDetector;
@@ -500,6 +501,8 @@ public class SpinningWheelView extends RelativeLayout {
                 tada = MediaPlayer.create(mContext, R.raw.tada);
             }
         });
+
+        markerInitialRotation = mMarker.getRotation();
     }
 
     /**
@@ -892,8 +895,6 @@ public class SpinningWheelView extends RelativeLayout {
     private class WheelTouchListener implements OnTouchListener {
         private final int ANIMATION_DURATION = 100;
 
-        private final float markerRotation = mMarker.getRotation();
-
         private double startAngle;
         private boolean CW = false;
         private int currentStandingSection;
@@ -915,10 +916,10 @@ public class SpinningWheelView extends RelativeLayout {
                         leftAnimationRotation.end();
                     }
 
-                    leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+                    leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation);
                     leftAnimationRotation.setDuration(ANIMATION_DURATION);
 
-                    rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? -50f : 50f));
+                    rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation + (CW ? -50f : 50f));
                     rightRotationAnimation.setDuration(ANIMATION_DURATION);
                     rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
                         @Override
@@ -954,14 +955,14 @@ public class SpinningWheelView extends RelativeLayout {
                         }
 
                         if (!leftAnimationRotation.isRunning()) {
-                            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+                            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation);
                             leftAnimationRotation.setDuration(ANIMATION_DURATION);
                         } else {
                             leftAnimationRotation.end();
                         }
 
                         if (!rightRotationAnimation.isRunning()) {
-                            rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + (CW ? -50f : 50f));
+                            rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation + (CW ? -50f : 50f));
                             rightRotationAnimation.setDuration(ANIMATION_DURATION);
                             rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
                                 @Override
@@ -1006,7 +1007,7 @@ public class SpinningWheelView extends RelativeLayout {
                     if (leftAnimationRotation != null) {
                         leftAnimationRotation.end();
                     }
-                    mMarker.setRotation(markerRotation);
+                    mMarker.setRotation(markerInitialRotation);
 
                     if ((flingCountDownTimer != null) && flingCountDownTimer.isRunning()) {
                         flingCountDownTimer.stop();
@@ -1109,7 +1110,6 @@ public class SpinningWheelView extends RelativeLayout {
         private boolean paused = false;
         private float velocity;
         private int currentStandingSection;
-        private float markerRotation = mMarker.getRotation();
 
         private void flingInit(float velocity) {
             this.velocity = velocity;
@@ -1124,28 +1124,28 @@ public class SpinningWheelView extends RelativeLayout {
 
             if ((flingDirection == FlingDirection.CW) && (velocity < 0)) {  // wheel changed direction to CCW
                 // rotate marker CW
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + 50f);
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation + 50f);
             } else if ((flingDirection == FlingDirection.CW) && (velocity > 0)) {   // wheel is still CW
                 // rotate marker CCW
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation - 50f);
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation - 50f);
             }
 
             if ((flingDirection == FlingDirection.CCW) && (velocity > 0)) { // wheel changed direction to CW
                 // rotate marker CCW
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation - 50f);
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation - 50f);
             } else if ((flingDirection == FlingDirection.CCW) && (velocity < 0)) {  // wheel is still CCW
                 // rotate marker CW
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + 50f);
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation + 50f);
             }
 
             if (flingDirection == FlingDirection.STOPPED) { // wheel is stopped
                 // rotate marker CCW if wheel is rotating CW (velocity > 0) and vice versa
-                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation + ((velocity > 0) ? -50f : 50f));
+                rightRotationAnimation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation + ((velocity > 0) ? -50f : 50f));
             }
 
             rightRotationAnimation.setDuration(ANIMATION_DURATION);
 
-            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerRotation);
+            leftAnimationRotation = ObjectAnimator.ofFloat(mMarker, "rotation", markerInitialRotation);
             leftAnimationRotation.setDuration(ANIMATION_DURATION);
 
             rightRotationAnimation.addListener(new AnimatorListenerAdapter() {
@@ -1198,7 +1198,7 @@ public class SpinningWheelView extends RelativeLayout {
 
             if (duration > 0) {
                 if (flingCountDownTimer != null) {
-                    flingCountDownTimer.cancel();
+                    flingCountDownTimer.stop();
                 }
 
                 flingCountDownTimer = new CustomCountDownTimer(duration, 500) {
@@ -1217,7 +1217,6 @@ public class SpinningWheelView extends RelativeLayout {
                     @Override
                     public void onStopped() {
                         flingVelocityDampening = flingVelocityDampeningTmp;
-                        super.cancel();
                     }
                 };
 
@@ -1270,36 +1269,37 @@ public class SpinningWheelView extends RelativeLayout {
                     // post this instance again
                     post(this);
                 } else {
-                    if (mListener != null) {
-                        new CountDownTimer(500, 20) {
-                            @Override
-                            public void onTick(long l) {
-                                Log.d("mn3m", "tick");
-                                if (flingDirection == FlingDirection.CW) {
-                                    rotateWheel(-0.1f);
-                                } else if (flingDirection == FlingDirection.CCW) {
-                                    rotateWheel(0.1f);
-                                }
+
+                    new CountDownTimer(500, 20) {
+                        @Override
+                        public void onTick(long l) {
+                            Log.d("mn3m", "tick");
+                            if (flingDirection == FlingDirection.CW) {
+                                rotateWheel(-0.1f);
+                            } else if (flingDirection == FlingDirection.CCW) {
+                                rotateWheel(0.1f);
+                            }
+                        }
+
+                        @Override
+                        public void onFinish() {
+//                            isReversing = false;
+                            flingDirection = FlingDirection.STOPPED;
+
+                            if (tada != null) {
+                                tada.start();
                             }
 
-                            @Override
-                            public void onFinish() {
-//                            isReversing = false;
-                                flingDirection = FlingDirection.STOPPED;
-
-                                if (tada != null) {
-                                    tada.start();
-                                }
-
-                                if (tickVibrations) {
-                                    // long vibration
-                                    vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
-                                }
-                                
+                            if (tickVibrations) {
+                                // long vibration
+                                vibrator.vibrate(new long[]{0, 100, 100, 1000}, -1);
+                            }
+                            if (mListener != null) {
                                 mListener.onWheelSettled(getCurrentSelectedSectionIndex(), getCurrentRotation());
                             }
-                        }.start();
-                    }
+                        }
+
+                    }.start();
                 }
             } else {
                 postDelayed(this, 500);

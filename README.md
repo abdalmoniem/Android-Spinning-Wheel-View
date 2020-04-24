@@ -16,33 +16,33 @@ Please see the sample application below!
 
 
 ## Sample application
-<a target="_blank" href='https://github.com/abdalmoniem/Android-Spinning-Wheel-View/releases/download/1.1.4/app-debug.apk'><img alt='Download Sample Application' src='assets/download_button.png' width="240px"/></a>
+<a target="_blank" href='https://github.com/abdalmoniem/Android-Spinning-Wheel-View/releases/download/1.1.5/app-debug.apk'><img alt='Download Sample Application' src='assets/download_button.png' width="240px"/></a>
 
 
 ## Gradle dependency
 in your **app/build.gradle** add the following:
 ```javascript
 dependencies {
-	implementation 'com.github.abdalmoniem:Android-Spinning-Wheel-View:1.1.4'
+   implementation 'com.github.abdalmoniem:Android-Spinning-Wheel-View:1.1.5'
 }
 ```
 
 in your **root/build.gradle** ***allprojects*** add the following:
 ```javascript
 maven {
-	url 'https://jitpack.io'
+   url 'https://jitpack.io'
 }
 ```
 so it becomes:
 ```javascript
 allprojects {
-	repositories {
-		google()
-		jcenter()
-		maven {
-			url 'https://jitpack.io'
-		}
-	}
+   repositories {
+      google()
+      jcenter()
+      maven {
+         url 'https://jitpack.io'
+      }
+   }
 }
 ```
 
@@ -51,10 +51,10 @@ allprojects {
 1) **Add the view to your layout**
 ```xml
 <​com​.hifnawy.spinningWheelLib.SpinningWheelView
-		android:id="@+id/home_spinning_wheel_view"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_gravity="center" />
+   android:id="@+id/home_spinning_wheel_view"
+   android:layout_width="match_parent"
+   android:layout_height="match_parent"
+   android:layout_gravity="center" />
 ```
 
 *Note that you can set **layout_width** and **layout_height** to predefined values, or one or both to **match_parent**. The View will take as much space as it can, while still being square.*
@@ -65,16 +65,16 @@ allprojects {
 ```java
 //Get the wheel view
 wheelView = (SpinningWheelView) findViewById(R.id.home_prize_wheel_view);
-	
+   
 //Populate a List of Sections
 List<WheelSection> wheelSections = new ArrayList<>();
 wheelSections.add(new WheelBitmapSection(someBitmap));
 wheelSections.add(new WheelDrawableSection(R.drawable.some_drawable));
 wheelSections.add(new WheelColorSection(R.color.some_color));
-	
+   
 //Set those sections
 wheelView.setWheelSections(wheelSections);
-	
+   
 //Finally, generate wheel
 wheelView.generateWheel();
 ```
@@ -83,36 +83,36 @@ wheelView.generateWheel();
 3) **Listen for wheel events**
 ```java
 mWheelView.setWheelEventsListener(new WheelEventsListener() {
-	@Override
-	public void onWheelStopped() {
-		//Handle wheel stopped here
-	}
-		
-	@Override
-	public void onWheelFlung() {
-		//Handle wheel flinging here
-	}
-		
-	@Override
-	public void onWheelSettled(int sectionIndex, double angle) {
-		//Handle wheel settle here
-	}
-});
+   @Override
+   public void onWheelStopped() {
+      //Handle wheel stopped here
+   }
 
+   @Override
+   public void onWheelFlung() {
+      //Handle wheel flinging here
+   }
+
+   @Override
+   public void onWheelSettled(int sectionIndex, double angle) {
+      //Handle wheel settle here
+   }
+});
 ```
 
 
 4) **Set even more options**
 ```java
 wheelView.setMarkerPosition(MarkerPosition.TOP_RIGHT);
-	
+   
 wheelView.setWheelBorderLineColor(R.color.border);
 wheelView.setWheelBorderLineThickness(5);
-	
+   
 wheelView.setWheelSeparatorLineColor(R.color.separator);
 wheelView.setWheelSeparatorLineThickness(5);
-	
-//Set onSettled listener
+   
+//Set wheelEventsListener
 wheelView.setWheelEventsListener(new WheelEventsListener() {...});
 ```
->Note that **wheelView.generateWheel();** must be called **after** setting all the options!!>
+
+>Note that **wheelView.generateWheel();** must be called **after** setting all the options!!
