@@ -245,8 +245,72 @@ public class MainActivity extends AppCompatActivity {
 
         wheelView.setFlingVelocityDampening(1.01f);
 
+        ObjectAnimator scaleXAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleX", 0f, 1f);
+        ObjectAnimator scaleYAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleY", 0f, 1f);
+
+        ObjectAnimator rotationAnimator = new ObjectAnimator().ofFloat(wheelView, "rotation", 0f, 360f);
+
+        scaleXAnimator.setDuration(300);
+        scaleYAnimator.setDuration(300);
+
+        scaleXAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+
+                ObjectAnimator scaleXAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleX", 1f, 0.9f);
+                scaleXAnimator.setDuration(100);
+
+                scaleXAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+
+                        ObjectAnimator scaleXAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleX", 0.9f, 1f);
+                        scaleXAnimator.setDuration(100);
+                        scaleXAnimator.start();
+
+                    }
+                });
+
+                scaleXAnimator.start();
+
+            }
+        });
+
+        scaleYAnimator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+
+                ObjectAnimator scaleYAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleY", 1f, 0.9f);
+                scaleYAnimator.setDuration(100);
+
+                scaleYAnimator.addListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+
+                        ObjectAnimator scaleYAnimator = new ObjectAnimator().ofFloat(wheelView, "scaleY", 0.9f, 1f);
+                        scaleYAnimator.setDuration(100);
+                        scaleYAnimator.start();
+
+                    }
+                });
+
+                scaleYAnimator.start();
+
+            }
+        });
+
+        rotationAnimator.setDuration(300);
+
+        scaleXAnimator.start();
+        scaleYAnimator.start();
+        rotationAnimator.start();
+
         // wheelView.flingWheel(1000, true);
-        wheelView.flingWheel(3000, 10000, true);
+        // wheelView.flingWheel(3000, 10000, true);
     }
 
     public int calculateBrightnessEstimate(int color) {
